@@ -2,6 +2,8 @@ import 'package:bupko_v2/models/book.dart';
 import 'package:bupko_v2/screens/epub_reader_screen.dart';
 import 'package:bupko_v2/services/epub_downloader.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
@@ -16,6 +18,47 @@ class _BookDetailPageState extends State<BookDetailPage> {
   double _progress = 0.0;
   bool _downloading = false;
   String? _filePath;
+  String? _description;
+  bool _loadingDescription = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchBookDescription();
+  }
+
+  Future<void> fetchBookDescription() async {
+    final title = Uri.encodeComponent(widget.book.title);
+    final url = 'https://www.googleapis.com/books/v1/volumes?q=intitle:$title';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['totalItems'] > 0) {
+          final volumeInfo = data['items'][0]['volumeInfo'];
+          setState(() {
+            _description = volumeInfo['description'] ?? 'No description found.';
+            _loadingDescription = false;
+          });
+        } else {
+          setState(() {
+            _description = 'No description found.';
+            _loadingDescription = false;
+          });
+        }
+      } else {
+        setState(() {
+          _description = 'Failed to fetch description.';
+          _loadingDescription = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _description = 'Failed to fetch description.';
+        _loadingDescription = false;
+      });
+    }
+  }
 
   void startDownload() async {
     if (widget.book.epubHREF == null || widget.book.epubHREF!.isEmpty) return;
@@ -154,14 +197,27 @@ class _BookDetailPageState extends State<BookDetailPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                'The Song Of Achilles',
+                widget.book.title,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Nafis',
-                style: TextStyle(color: Colors.grey),
-              ),
+              const SizedBox(height: 24),
+              // Text(
+              //   "About this Ebook",
+              //   style: TextStyle(
+              //       fontSize: 14,
+              //       fontWeight: FontWeight.bold,
+              //       color: const Color.fromARGB(255, 255, 255, 255)),
+              //   textAlign: TextAlign.start,
+              // ),
+              _loadingDescription
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : Text(
+                      _description ?? '',
+                      style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 255, 255, 255)),
+                    ),
             ],
           ),
         ),
