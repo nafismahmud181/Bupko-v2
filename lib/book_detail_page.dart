@@ -30,7 +30,8 @@ class _BookDetailPageState extends State<BookDetailPage> {
 
   Future<void> fetchBookDescription() async {
     final title = Uri.encodeComponent(widget.book.title);
-    final url = 'https://www.googleapis.com/books/v1/volumes?q=intitle:$title';
+    final url = 'https://www.googleapis.com/books/v1/volumes?q=$title';
+
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
