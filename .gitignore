@@ -1,0 +1,76 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+pubspec.lock
+build/
+.dart_tool/
+generated_plugin_registrant.dart
+
+# Android related
+android/.gradle/
+android/app/build/
+android/.idea/
+*.iml
+*.apk
+*.aar
+*.jks
+
+# iOS/macOS related
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/ServiceDefinitions.json
+ios/Runner.xcworkspace/
+ios/build/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/engine/
+ios/.generated/
+macos/Flutter/Flutter.framework
+macos/Flutter/Flutter.podspec
+macos/ServiceDefinitions.json
+macos/Runner.xcworkspace/
+macos/build/
+macos/Pods/
+macos/.symlinks/
+macos/.generated/
+
+# Web related
+web/.dart_tool/
+web/build/
+
+# Linux related
+linux/flutter/ephemeral/
+linux/build/
+
+# Windows related
+windows/flutter/ephemeral/
+windows/build/
+
+# Fuchsia related
+.fuchsia/
+
+# VS Code related
+.vscode/
+
+# IntelliJ related
+.idea/
+*.iml
+
+# Misc
+*.log
+*.lock
+*.tmp
+*.DS_Store
+*.bak
+*.swp
+
+# Environment files
+.env
+.env.*
+
+# Symbolic links for plugins
+.symlinks/
