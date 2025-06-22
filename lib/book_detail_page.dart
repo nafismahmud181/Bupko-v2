@@ -7,8 +7,9 @@ import 'dart:convert';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
+  final String categoryName;
 
-  const BookDetailPage({super.key, required this.book});
+  const BookDetailPage({super.key, required this.book, required this.categoryName});
 
   @override
   State<BookDetailPage> createState() => _BookDetailPageState();
@@ -113,8 +114,8 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '#3 On Trending',
+                         Text(
+                          widget.categoryName,
                           style: TextStyle(
                             color: Colors.lightBlue,
                             fontWeight: FontWeight.bold,

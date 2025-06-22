@@ -106,13 +106,16 @@ class _HomePageState extends State<HomePage> {
                         itemCount: popularBooks.length,
                         itemBuilder: (context, index) {
                           final book = popularBooks[index];
+                          final categoryName = _selectedCategory;
                           return GestureDetector(
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      BookDetailPage(book: book),
+                                  builder: (context) => BookDetailPage(
+                                    book: book,
+                                    categoryName: categoryName,
+                                  ),
                                 ),
                               );
                             },
