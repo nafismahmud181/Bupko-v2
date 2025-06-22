@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                             },
-                            child: Container(
+                            child: SizedBox(
                               width: 150,
                               // margin: const EdgeInsets.only(right: 3),
                               child: Column(

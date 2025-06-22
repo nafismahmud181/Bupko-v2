@@ -1,18 +1,5 @@
 [
   {
-    "categoryName": "Comics",
-    "books":[
-      {
-        "title": "Billy the Kid (UK) SUN Collection 1",
-        "author": "Unknown",
-        "language": "English",
-        "imageSRC": "https://box01.comicbookplus.com/viewer/1c/1c2c26dff4c50fba593278d4bd13a051/largethumb.jpg",
-        "readonlineHREF": "https://www.gutenberg.org/ebooks/17748.html.images",
-        "cbzHREF": "https://box01.comicbookplus.com/dload/?f=1c2c26dff4c50fba593278d4bd13a051&t=cbz&n=Billy_the_Kid__UK__SUN_Collection_Pt.1_revised2&sess=45efcf181ee639283da5f6c850d508af"
-      }
-    ]
-  },
-  {
     "categoryName": "Fiction",
     "books": [
       {
