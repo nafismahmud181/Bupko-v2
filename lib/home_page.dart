@@ -44,133 +44,157 @@ class _HomePageState extends State<HomePage> {
       popularBooks = category.books;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: const Icon(Icons.menu),
-        title: const Text('Hello Jimmy!'),
-        centerTitle: true,
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundImage: NetworkImage(
-                  'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png'),
-            ),
-          ),
-        ],
-      ),
-      body: _bookCategories.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 10.0,
-                      runSpacing: 10.0,
-                      children: _bookCategories.map((category) {
-                        final isSelected =
-                            category.categoryName == _selectedCategory;
-                        return ChoiceChip(
-                          label: Text(category.categoryName),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _selectedCategory = category.categoryName;
-                              });
-                            }
-                          },
-                          backgroundColor: Colors.grey[800],
-                          selectedColor: Colors.white,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.black : Colors.white,
-                          ),
-                          shape: const StadiumBorder(),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'Popular Books',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 280,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: popularBooks.length,
-                        itemBuilder: (context, index) {
-                          final book = popularBooks[index];
-                          final categoryName = _selectedCategory;
-                          return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => BookDetailPage(
-                                    book: book,
-                                    categoryName: categoryName,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: SizedBox(
-                              width: 150,
-                              // margin: const EdgeInsets.only(right: 3),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    child: Image.network(
-                                      book.imageSRC,
-                                      height: 190,
-                                      width: 130,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          height: 200,
-                                          width: 150,
-                                          color: Colors.grey[800],
-                                          child: const Icon(Icons.book),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    book.title.length > 13
-                                        ? '${book.title.substring(0, 13)}...'
-                                        : book.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    book.author.length > 13
-                                        ? '${book.author.substring(0, 13)}...'
-                                        : book.author,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+    return WillPopScope(
+      onWillPop: () async {
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Exit App'),
+              content: const Text('Are you sure you want to leave?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('No'),
                 ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+        return shouldPop ?? false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: const Icon(Icons.menu),
+          title: const Text('Hello Jimmy!'),
+          centerTitle: true,
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 16.0),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                    'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png'),
               ),
             ),
+          ],
+        ),
+        body: _bookCategories.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 10.0,
+                        runSpacing: 10.0,
+                        children: _bookCategories.map((category) {
+                          final isSelected =
+                              category.categoryName == _selectedCategory;
+                          return ChoiceChip(
+                            label: Text(category.categoryName),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _selectedCategory = category.categoryName;
+                                });
+                              }
+                            },
+                            backgroundColor: Colors.grey[800],
+                            selectedColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.black : Colors.white,
+                            ),
+                            shape: const StadiumBorder(),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Popular Books',
+                        style:
+                            TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 280,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: popularBooks.length,
+                          itemBuilder: (context, index) {
+                            final book = popularBooks[index];
+                            final categoryName = _selectedCategory;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BookDetailPage(
+                                      book: book,
+                                      categoryName: categoryName,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: SizedBox(
+                                width: 150,
+                                // margin: const EdgeInsets.only(right: 3),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: Image.network(
+                                        book.imageSRC,
+                                        height: 190,
+                                        width: 130,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Container(
+                                            height: 200,
+                                            width: 150,
+                                            color: Colors.grey[800],
+                                            child: const Icon(Icons.book),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      book.title.length > 13
+                                          ? '${book.title.substring(0, 13)}...'
+                                          : book.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      book.author.length > 13
+                                          ? '${book.author.substring(0, 13)}...'
+                                          : book.author,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+      ),
     );
   }
 } 

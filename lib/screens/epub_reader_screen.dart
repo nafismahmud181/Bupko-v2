@@ -26,7 +26,9 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Epub Reader")),
-      body: EpubView(controller: _epubController),
+      body: EpubView(
+        controller: _epubController,
+      ),
     );
   }
-} 
+}
