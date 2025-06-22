@@ -12,6 +12,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<BookCategory> _bookCategories = [];
+  String _selectedCategory = '';
 
   @override
   void initState() {
@@ -23,71 +24,129 @@ class _HomePageState extends State<HomePage> {
     final String response = await rootBundle.loadString('assets/ebook.json');
     final data = await json.decode(response) as List;
     setState(() {
-      _bookCategories = data.map((json) => BookCategory.fromJson(json)).toList();
+      _bookCategories =
+          data.map((json) => BookCategory.fromJson(json)).toList();
+      if (_bookCategories.isNotEmpty) {
+        _selectedCategory = _bookCategories.first.categoryName;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Book> popularBooks = [];
+    if (_bookCategories.isNotEmpty) {
+      final category = _bookCategories.firstWhere(
+        (cat) => cat.categoryName == _selectedCategory,
+        orElse: () => _bookCategories.first,
+      );
+      popularBooks = category.books;
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ebook Library'),
+        leading: const Icon(Icons.menu),
+        title: const Text('Hello Jimmy!'),
+        centerTitle: true,
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                  'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png'),
+            ),
+          ),
+        ],
       ),
       body: _bookCategories.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _bookCategories.length,
-              itemBuilder: (context, index) {
-                final category = _bookCategories[index];
-                return Column(
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        category.categoryName,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
+                    Wrap(
+                      spacing: 10.0,
+                      runSpacing: 10.0,
+                      children: _bookCategories.map((category) {
+                        final isSelected =
+                            category.categoryName == _selectedCategory;
+                        return ChoiceChip(
+                          label: Text(category.categoryName),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() {
+                                _selectedCategory = category.categoryName;
+                              });
+                            }
+                          },
+                          backgroundColor: Colors.grey[800],
+                          selectedColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.black : Colors.white,
+                          ),
+                          shape: const StadiumBorder(),
+                        );
+                      }).toList(),
                     ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Popular Books',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
                     SizedBox(
-                      height: 250,
+                      height: 280,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: category.books.length,
+                        itemCount: popularBooks.length,
                         itemBuilder: (context, index) {
-                          final book = category.books[index];
-                          return SizedBox(
+                          final book = popularBooks[index];
+                          return Container(
                             width: 150,
-                            child: Card(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Image.network(
-                                      book.imageSRC,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(Icons.book);
-                                      },
-                                    ),
+                            margin: const EdgeInsets.only(right: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  child: Image.network(
+                                    book.imageSRC,
+                                    height: 200,
+                                    width: 150,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      return Container(
+                                        height: 200,
+                                        width: 150,
+                                        color: Colors.grey[800],
+                                        child: const Icon(Icons.book),
+                                      );
+                                    },
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      book.title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  book.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(book.author),
+                              ],
                             ),
                           );
                         },
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+              ),
             ),
     );
   }

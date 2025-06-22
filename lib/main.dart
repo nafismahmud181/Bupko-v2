@@ -13,7 +13,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Ebook Library',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
+        primaryColor: Colors.grey[900],
+        scaffoldBackgroundColor: Colors.grey[900],
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey[900],
+          elevation: 0,
+        ),
+        fontFamily: 'Poppins',
       ),
       home: const HomePage(),
     );
