@@ -1,6 +1,7 @@
 import 'package:bupko_v2/models/book.dart';
 import 'package:bupko_v2/screens/epub_reader_screen.dart';
 import 'package:bupko_v2/services/epub_downloader.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -141,9 +142,13 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     flex: 1,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
-                        widget.book.imageSRC,
+                      child: CachedNetworkImage(
+                        imageUrl: widget.book.imageSRC,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) =>
+                            const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
                     ),
                   ),

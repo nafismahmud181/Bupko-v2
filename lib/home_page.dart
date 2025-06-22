@@ -1,8 +1,17 @@
 import 'dart:convert';
+
+import 'package:bupko_v2/book_detail_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bupko_v2/book_detail_page.dart';
+
 import 'models/book.dart';
+
+List<BookCategory> _parseBookCategories(String jsonString) {
+  final List<dynamic> parsed = json.decode(jsonString);
+  return parsed.map((json) => BookCategory.fromJson(json)).toList();
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,10 +32,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadBooks() async {
     final String response = await rootBundle.loadString('assets/ebook.json');
-    final data = await json.decode(response) as List;
+    final List<BookCategory> categories = await compute(
+      _parseBookCategories,
+      response,
+    );
+    if (!mounted) return;
     setState(() {
-      _bookCategories =
-          data.map((json) => BookCategory.fromJson(json)).toList();
+      _bookCategories = categories;
       if (_bookCategories.isNotEmpty) {
         _selectedCategory = _bookCategories.first.categoryName;
       }
@@ -44,28 +56,36 @@ class _HomePageState extends State<HomePage> {
       popularBooks = category.books;
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Exit App'),
-              content: const Text('Are you sure you want to leave?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
-        return shouldPop ?? false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          return;
+        }
+        final bool shouldPop =
+            await showDialog<bool>(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('Exit App'),
+                  content: const Text('Are you sure you want to leave?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('No'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Yes'),
+                    ),
+                  ],
+                );
+              },
+            ) ??
+            false;
+        if (context.mounted && shouldPop) {
+          Navigator.pop(context);
+        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -77,7 +97,8 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.only(right: 16.0),
               child: CircleAvatar(
                 backgroundImage: NetworkImage(
-                    'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png'),
+                  'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png',
+                ),
               ),
             ),
           ],
@@ -118,8 +139,10 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 24),
                       const Text(
                         'Popular Books',
-                        style:
-                            TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -150,20 +173,28 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
-                                      child: Image.network(
-                                        book.imageSRC,
+                                      child: CachedNetworkImage(
+                                        imageUrl: book.imageSRC,
                                         height: 190,
                                         width: 130,
                                         fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Container(
-                                            height: 200,
-                                            width: 150,
-                                            color: Colors.grey[800],
-                                            child: const Icon(Icons.book),
-                                          );
-                                        },
+                                        placeholder: (context, url) =>
+                                            Container(
+                                              height: 190,
+                                              width: 150,
+                                              color: Colors.grey[800],
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            Container(
+                                              height: 190,
+                                              width: 150,
+                                              color: Colors.grey[800],
+                                              child: const Icon(Icons.book),
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -174,7 +205,8 @@ class _HomePageState extends State<HomePage> {
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       book.author.length > 13
@@ -197,4 +229,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-} 
+}
