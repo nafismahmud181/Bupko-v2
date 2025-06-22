@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:bupko_v2/book_detail_page.dart';
 import 'models/book.dart';
 
 class HomePage extends StatefulWidget {
@@ -105,48 +106,59 @@ class _HomePageState extends State<HomePage> {
                         itemCount: popularBooks.length,
                         itemBuilder: (context, index) {
                           final book = popularBooks[index];
-                          return Container(
-                            width: 150,
-                            // margin: const EdgeInsets.only(right: 3),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  child: Image.network(
-                                    book.imageSRC,
-                                    height: 190,
-                                    width: 130,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) {
-                                      return Container(
-                                        height: 200,
-                                        width: 150,
-                                        color: Colors.grey[800],
-                                        child: const Icon(Icons.book),
-                                      );
-                                    },
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      BookDetailPage(book: book),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 150,
+                              // margin: const EdgeInsets.only(right: 3),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.network(
+                                      book.imageSRC,
+                                      height: 190,
+                                      width: 130,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          height: 200,
+                                          width: 150,
+                                          color: Colors.grey[800],
+                                          child: const Icon(Icons.book),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  book.title.length > 13
-                                      ? '${book.title.substring(0, 13)}...'
-                                      : book.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  book.author.length > 13
-                                      ? '${book.author.substring(0, 13)}...'
-                                      : book.author,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    book.title.length > 13
+                                        ? '${book.title.substring(0, 13)}...'
+                                        : book.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    book.author.length > 13
+                                        ? '${book.author.substring(0, 13)}...'
+                                        : book.author,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
