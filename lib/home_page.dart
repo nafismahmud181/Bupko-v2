@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                           final book = popularBooks[index];
                           return Container(
                             width: 150,
-                            margin: const EdgeInsets.only(right: 16),
+                            // margin: const EdgeInsets.only(right: 3),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
                                   child: Image.network(
                                     book.imageSRC,
                                     height: 190,
-                                    width: 150,
+                                    width: 130,
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (context, error, stackTrace) {
@@ -131,14 +131,18 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  book.title,
+                                  book.title.length > 13
+                                      ? '${book.title.substring(0, 13)}...'
+                                      : book.title,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
-                                  book.author,
+                                  book.author.length > 13
+                                      ? '${book.author.substring(0, 13)}...'
+                                      : book.author,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
