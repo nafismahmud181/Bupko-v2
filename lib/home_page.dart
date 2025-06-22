@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(8.0),
                                   child: Image.network(
                                     book.imageSRC,
-                                    height: 200,
+                                    height: 190,
                                     width: 150,
                                     fit: BoxFit.cover,
                                     errorBuilder:
@@ -137,7 +137,11 @@ class _HomePageState extends State<HomePage> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold),
                                 ),
-                                Text(book.author),
+                                Text(
+                                  book.author,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
                             ),
                           );
