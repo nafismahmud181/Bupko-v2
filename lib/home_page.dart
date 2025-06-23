@@ -1,17 +1,9 @@
-import 'dart:convert';
-
 import 'package:bupko_v2/book_detail_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'models/book.dart';
-
-List<BookCategory> _parseBookCategories(String jsonString) {
-  final List<dynamic> parsed = json.decode(jsonString);
-  return parsed.map((json) => BookCategory.fromJson(json)).toList();
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,25 +15,31 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<BookCategory> _bookCategories = [];
   String _selectedCategory = '';
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadBooks();
+    _fetchBooksFromFirestore();
   }
 
-  Future<void> _loadBooks() async {
-    final String response = await rootBundle.loadString('assets/ebook.json');
-    final List<BookCategory> categories = await compute(
-      _parseBookCategories,
-      response,
-    );
+  Future<void> _fetchBooksFromFirestore() async {
+    setState(() => _loading = true);
+    final categoriesSnapshot = await FirebaseFirestore.instance.collection('categories').get();
+    List<BookCategory> categories = [];
+    for (var categoryDoc in categoriesSnapshot.docs) {
+      final categoryName = categoryDoc['categoryName'] as String;
+      final booksSnapshot = await categoryDoc.reference.collection('books').get();
+      final books = booksSnapshot.docs.map((doc) => Book.fromJson(doc.data())).toList();
+      categories.add(BookCategory(categoryName: categoryName, books: books));
+    }
     if (!mounted) return;
     setState(() {
       _bookCategories = categories;
       if (_bookCategories.isNotEmpty) {
         _selectedCategory = _bookCategories.first.categoryName;
       }
+      _loading = false;
     });
   }
 
@@ -56,14 +54,19 @@ class _HomePageState extends State<HomePage> {
       popularBooks = category.books;
     }
 
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) {
           return;
         }
-        final bool shouldPop =
-            await showDialog<bool>(
+        final bool shouldPop = await showDialog<bool>(
               context: context,
               builder: (context) {
                 return AlertDialog(
@@ -104,7 +107,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         body: _bookCategories.isEmpty
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: Text('No books found.'))
             : SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -153,71 +156,82 @@ class _HomePageState extends State<HomePage> {
                           itemBuilder: (context, index) {
                             final book = popularBooks[index];
                             final categoryName = _selectedCategory;
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BookDetailPage(
-                                      book: book,
-                                      categoryName: categoryName,
+                            return Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => BookDetailPage(
+                                          book: book,
+                                          categoryName: categoryName,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: SizedBox(
+                                    width: 130,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(8.0),
+                                          child: book.imageSRC.isNotEmpty
+                                              ? CachedNetworkImage(
+                                                  imageUrl: book.imageSRC,
+                                                  height: 190,
+                                                  width: 130,
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) =>
+                                                      Container(
+                                                        height: 190,
+                                                        width: 150,
+                                                        color: Colors.grey[800],
+                                                        child: const Center(
+                                                          child: CircularProgressIndicator(),
+                                                        ),
+                                                      ),
+                                                  errorWidget: (context, url, error) =>
+                                                      Container(
+                                                        height: 190,
+                                                        width: 150,
+                                                        color: Colors.grey[800],
+                                                        child: const Icon(Icons.book),
+                                                      ),
+                                                )
+                                              : Container(
+                                                  height: 190,
+                                                  width: 130,
+                                                  color: Colors.grey[800],
+                                                  child: const Icon(Icons.book),
+                                                ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          book.title.length > 13
+                                              ? '${book.title.substring(0, 13)}...'
+                                              : book.title,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          book.author.length > 13
+                                              ? '${book.author.substring(0, 13)}...'
+                                              : book.author,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                );
-                              },
-                              child: SizedBox(
-                                width: 150,
-                                // margin: const EdgeInsets.only(right: 3),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      child: CachedNetworkImage(
-                                        imageUrl: book.imageSRC,
-                                        height: 190,
-                                        width: 130,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Container(
-                                              height: 190,
-                                              width: 150,
-                                              color: Colors.grey[800],
-                                              child: const Center(
-                                                child:
-                                                    CircularProgressIndicator(),
-                                              ),
-                                            ),
-                                        errorWidget: (context, url, error) =>
-                                            Container(
-                                              height: 190,
-                                              width: 150,
-                                              color: Colors.grey[800],
-                                              child: const Icon(Icons.book),
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      book.title.length > 13
-                                          ? '${book.title.substring(0, 13)}...'
-                                          : book.title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      book.author.length > 13
-                                          ? '${book.author.substring(0, 13)}...'
-                                          : book.author,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
                                 ),
-                              ),
+                                if (index != popularBooks.length - 1)
+                                  const SizedBox(width: 16),
+                              ],
                             );
                           },
                         ),

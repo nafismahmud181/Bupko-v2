@@ -5,7 +5,6 @@ class Book {
   final String imageSRC;
   final String readonlineHREF;
   final String? epubHREF;
-  final String? cbzHREF;
 
   Book({
     required this.title,
@@ -14,18 +13,16 @@ class Book {
     required this.imageSRC,
     required this.readonlineHREF,
     this.epubHREF,
-    this.cbzHREF,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      title: json['title'],
-      author: json['author'],
-      language: json['language'],
-      imageSRC: json['imageSRC'],
-      readonlineHREF: json['readonlineHREF'],
-      epubHREF: json['epubHREF'],
-      cbzHREF: json['cbzHREF'],
+      title: json['title'] ?? '',
+      author: json['author'] ?? '',
+      language: json['language'] ?? '',
+      imageSRC: json['image_src'] ?? '',
+      readonlineHREF: json['readonline_href'] ?? '',
+      epubHREF: json['epub_href'],
     );
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357775521284",
+    "project_id": "bupko-e2bae",
+    "storage_bucket": "bupko-e2bae.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357775521284:android:5265ef6ab4156c5d8ca751",
+        "android_client_info": {
+          "package_name": "com.example.bupko_v2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCr4I4lePLXXBxuOlHDfW9KqdNQOFpgGA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
