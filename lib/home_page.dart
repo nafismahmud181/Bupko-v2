@@ -93,7 +93,6 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: const Icon(Icons.menu),
           title: const Text('Hello Jimmy!'),
           centerTitle: true,
           actions: const [
