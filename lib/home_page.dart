@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'category_page.dart';
+import 'search_page.dart';
 
 import 'models/book.dart';
 
@@ -269,11 +270,11 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CategoryPage()),
+              MaterialPageRoute(builder: (context) => const SearchPage()),
             );
           },
-          icon: const Icon(Icons.category),
-          label: const Text('Categories'),
+          icon: const Icon(Icons.search),
+          label: const Text('Search'),
         ),
       ),
     );
