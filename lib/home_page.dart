@@ -6,6 +6,7 @@ import 'category_page.dart';
 import 'search_page.dart';
 import 'services/auth_service.dart';
 import 'screens/library_page.dart';
+import 'category_books_page.dart';
 
 import 'models/book.dart';
 import 'auth/login_page.dart';
@@ -194,6 +195,121 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Explore by Genre section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Explore by Genre',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CategoryPage()),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 110,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _bookCategories.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final category = _bookCategories[index];
+                            // Get image from Firestore category document
+                            final firestoreCategory = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
+                            final imageUrl = category.books.isNotEmpty && category.books.first.imageSRC.isNotEmpty
+                              ? category.books.first.imageSRC
+                              : '';
+                            final categoryDoc = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
+                            // Use the image from Firestore if available
+                            return FutureBuilder<QuerySnapshot>(
+                              future: FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName).get(),
+                              builder: (context, snapshot) {
+                                String? firestoreImageUrl;
+                                DocumentReference? categoryRef;
+                                if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                                  firestoreImageUrl = snapshot.data!.docs.first['image'] ?? '';
+                                  categoryRef = snapshot.data!.docs.first.reference;
+                                }
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (categoryRef != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => CategoryBooksPage(
+                                            categoryRef: categoryRef!,
+                                            categoryName: category.categoryName,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: firestoreImageUrl != null && firestoreImageUrl.isNotEmpty
+                                            ? Image.network(
+                                                firestoreImageUrl,
+                                                width: 160,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Container(
+                                                width: 160,
+                                                height: 100,
+                                                color: Colors.grey[800],
+                                                child: const Icon(Icons.category, color: Colors.white, size: 40),
+                                              ),
+                                      ),
+                                      Container(
+                                        width: 160,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(16),
+                                          color: Colors.black.withOpacity(0.4),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        left: 12,
+                                        bottom: 12,
+                                        child: Text(
+                                          category.categoryName,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 4,
+                                                color: Colors.black54,
+                                                offset: Offset(1, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Wrap(
                         spacing: 10.0,
                         runSpacing: 10.0,

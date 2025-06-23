@@ -24,10 +24,10 @@ class MyApp extends StatelessWidget {
       title: 'Ebook Library',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.grey[900],
-        scaffoldBackgroundColor: Colors.grey[900],
+        primaryColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFF121212),
         appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: const Color(0xFF121212),
           elevation: 0,
         ),
         fontFamily: 'Poppins',

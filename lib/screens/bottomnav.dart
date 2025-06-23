@@ -1,8 +1,8 @@
 import 'package:bupko_v2/home_page.dart';
-import 'package:bupko_v2/screens/catagories.dart';
 import 'package:bupko_v2/screens/library_page.dart';
-import 'package:bupko_v2/screens/profilePage.dart';
+import 'package:bupko_v2/screens/profile_page.dart';
 import 'package:flutter/material.dart';
+import 'package:bupko_v2/category_page.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -23,7 +23,7 @@ class _BottomNavState extends State<BottomNav> {
   // List of pages to display based on the selected index
   final List<Widget> _pages = [
     HomePage(),
-    CatagaryPage(),
+    CategoryPage(),
     LibraryPage(),
     ProfilePage(),
   ];
