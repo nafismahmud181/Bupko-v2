@@ -72,7 +72,7 @@ class CategoryPage extends StatelessWidget {
                           bottom: 0,
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                            color: Colors.black.withOpacity(0.55),
+                            color: Colors.black.withValues(alpha: 0.55),
                             child: Center(
                               child: Text(
                                 categoryName,

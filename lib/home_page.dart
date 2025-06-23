@@ -4,8 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'category_page.dart';
 import 'search_page.dart';
+import 'services/auth_service.dart';
 
 import 'models/book.dart';
+import 'auth/login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -108,8 +110,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
+          child: Column(
             children: [
               const DrawerHeader(
                 decoration: BoxDecoration(
@@ -129,6 +130,42 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               // Add more ListTiles here for other pages if needed
+              const Spacer(),
+              if (AuthService().currentUser != null)
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Logout'),
+                  onTap: () async {
+                    await AuthService().signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Close drawer
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const HomePage()),
+                        (route) => false,
+                      );
+                      setState(() {}); // Refresh UI
+                    }
+                  },
+                )
+              else
+                ListTile(
+                  leading: const Icon(Icons.login),
+                  title: const Text('Login'),
+                  onTap: () async {
+                    Navigator.of(context).pop(); // Close drawer
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(
+                          onSignUp: () {}, // You can add sign up navigation if needed
+                        ),
+                      ),
+                    );
+                    if (result == true && context.mounted) {
+                      setState(() {}); // Refresh UI after login
+                    }
+                  },
+                ),
             ],
           ),
         ),
