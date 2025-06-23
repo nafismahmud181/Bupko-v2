@@ -1,8 +1,49 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
   final VoidCallback onSignIn;
   const SignUpPage({super.key, required this.onSignIn});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  void _signUp() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    if (_passwordController.text != _confirmController.text) {
+      setState(() {
+        _error = 'Passwords do not match.';
+        _loading = false;
+      });
+      return;
+    }
+    try {
+      final user = await AuthService().signUp(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (user == null) {
+        setState(() => _error = 'Sign up failed.');
+      } else {
+        Navigator.of(context).pop(true); // Return true to indicate success
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +81,7 @@ class SignUpPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(
@@ -49,6 +91,7 @@ class SignUpPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -59,6 +102,7 @@ class SignUpPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: _confirmController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
@@ -67,6 +111,10 @@ class SignUpPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -78,8 +126,10 @@ class SignUpPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {},
-                    child: const Text('Sign up', style: TextStyle(fontSize: 16)),
+                    onPressed: _loading ? null : _signUp,
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Sign up', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -110,7 +160,7 @@ class SignUpPage extends StatelessWidget {
                   children: [
                     const Text("Already have an account? "),
                     GestureDetector(
-                      onTap: onSignIn,
+                      onTap: widget.onSignIn,
                       child: const Text(
                         'Sign in',
                         style: TextStyle(

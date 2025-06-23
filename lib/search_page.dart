@@ -18,7 +18,6 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _controller = TextEditingController();
 
   void _onSearchChanged(String value) async {
-    print('Search changed: $value');
     setState(() {
       _query = value;
       _loading = true;
@@ -32,7 +31,6 @@ class _SearchPageState extends State<SearchPage> {
     }
     try {
       final categories = await FirebaseFirestore.instance.collection('categories').get();
-      print('Categories found: ${categories.docs.length}');
       // Fetch all books in parallel
       final futures = categories.docs.map((category) {
         return category.reference.collection('books').get();
@@ -40,23 +38,19 @@ class _SearchPageState extends State<SearchPage> {
       final booksSnapshots = await Future.wait(futures);
       List<QueryDocumentSnapshot> books = [];
       for (int i = 0; i < booksSnapshots.length; i++) {
-        print('Books in ${categories.docs[i].id}: ${booksSnapshots[i].docs.length}');
         books.addAll(booksSnapshots[i].docs);
       }
       final filtered = books.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
         final title = (data['title'] ?? '').toString().toLowerCase().trim();
         final query = value.toLowerCase().trim();
-        print('Checking: $title');
         return title.contains(query);
       }).toList();
       setState(() {
         _results = filtered;
         _loading = false;
       });
-    } catch (e, st) {
-      print('Firestore error: $e');
-      print(st);
+    } catch (e) {
       setState(() {
         _results = [];
         _loading = false;

@@ -5,6 +5,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'services/auth_service.dart';
+import 'auth/login_page.dart';
+import 'auth/signup_page.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
@@ -89,16 +92,46 @@ class _BookDetailPageState extends State<BookDetailPage> {
     }
   }
 
+  Future<bool> _requireAuth() async {
+    if (AuthService().currentUser != null) return true;
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage(onSignUp: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => SignUpPage(onSignIn: () => Navigator.pop(context)),
+        ));
+      })),
+    );
+    return result == true && AuthService().currentUser != null;
+  }
+
+  void _onPlayBook() async {
+    if (await _requireAuth()) {
+      startDownload();
+    }
+  }
+
+  void _onFavorite() async {
+    if (await _requireAuth()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Book added to favorites!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Detail'),
         centerTitle: true,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Icon(Icons.favorite_border),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: const Icon(Icons.favorite_border),
+              onPressed: _onFavorite,
+            ),
           ),
         ],
       ),
@@ -256,7 +289,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: startDownload,
+                      onPressed: _onPlayBook,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,

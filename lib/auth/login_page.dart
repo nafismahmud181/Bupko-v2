@@ -1,8 +1,41 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   final VoidCallback onSignUp;
   const LoginPage({super.key, required this.onSignUp});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  void _signIn() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final user = await AuthService().signIn(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (user == null) {
+        setState(() => _error = 'Sign in failed.');
+      } else {
+        Navigator.of(context).pop(true); // Return true to indicate success
+      }
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +73,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     border: OutlineInputBorder(
@@ -49,6 +83,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -57,6 +92,10 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -68,8 +107,10 @@ class LoginPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () {},
-                    child: const Text('Sign in', style: TextStyle(fontSize: 16)),
+                    onPressed: _loading ? null : _signIn,
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Sign in', style: TextStyle(fontSize: 16)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -100,7 +141,7 @@ class LoginPage extends StatelessWidget {
                   children: [
                     const Text("Don't have an account? "),
                     GestureDetector(
-                      onTap: onSignUp,
+                      onTap: widget.onSignUp,
                       child: const Text(
                         'Sign up',
                         style: TextStyle(
