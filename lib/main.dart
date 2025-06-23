@@ -2,6 +2,9 @@ import 'package:bupko_v2/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'auth/splash_screen.dart';
+import 'auth/login_page.dart';
+import 'auth/signup_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,5 +34,36 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomePage(),
     );
+  }
+}
+
+class _AuthRoot extends StatefulWidget {
+  const _AuthRoot({super.key});
+  @override
+  State<_AuthRoot> createState() => _AuthRootState();
+}
+
+class _AuthRootState extends State<_AuthRoot> {
+  bool _showSplash = true;
+  bool _showLogin = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showSplash = false;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showSplash) return const SplashScreen();
+    if (_showLogin) {
+      return LoginPage(onSignUp: () => setState(() => _showLogin = false));
+    } else {
+      return SignUpPage(onSignIn: () => setState(() => _showLogin = true));
+    }
   }
 }
