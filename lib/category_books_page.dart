@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'book_detail_page.dart';
+import 'models/book.dart';
 
 class CategoryBooksPage extends StatelessWidget {
   final DocumentReference categoryRef;
@@ -25,11 +27,12 @@ class CategoryBooksPage extends StatelessWidget {
             itemCount: books.length,
             separatorBuilder: (context, index) => const Divider(),
             itemBuilder: (context, index) {
-              final book = books[index].data() as Map<String, dynamic>;
+              final bookMap = books[index].data() as Map<String, dynamic>;
+              final book = Book.fromJson(bookMap);
               return ListTile(
-                leading: book['image_src'] != null && (book['image_src'] as String).isNotEmpty
+                leading: book.imageSRC.isNotEmpty
                     ? CachedNetworkImage(
-                        imageUrl: book['image_src'],
+                        imageUrl: book.imageSRC,
                         width: 50,
                         height: 70,
                         fit: BoxFit.cover,
@@ -41,10 +44,18 @@ class CategoryBooksPage extends StatelessWidget {
                         errorWidget: (context, url, error) => const Icon(Icons.book),
                       )
                     : const Icon(Icons.book, size: 50),
-                title: Text(book['title'] ?? ''),
-                subtitle: Text(book['author'] ?? ''),
+                title: Text(book.title),
+                subtitle: Text(book.author),
                 onTap: () {
-                  // TODO: Navigate to book details
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookDetailPage(
+                        book: book,
+                        categoryName: categoryName,
+                      ),
+                    ),
+                  );
                 },
               );
             },
