@@ -2,6 +2,7 @@ import 'package:bupko_v2/book_detail_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'category_page.dart';
 
 import 'models/book.dart';
 
@@ -105,6 +106,31 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ],
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              const DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple,
+                ),
+                child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+              ),
+              ListTile(
+                leading: const Icon(Icons.category),
+                title: const Text('Categories'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CategoryPage()),
+                  );
+                },
+              ),
+              // Add more ListTiles here for other pages if needed
+            ],
+          ),
         ),
         body: _bookCategories.isEmpty
             ? const Center(child: Text('No books found.'))
@@ -240,6 +266,16 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CategoryPage()),
+            );
+          },
+          icon: const Icon(Icons.category),
+          label: const Text('Categories'),
+        ),
       ),
     );
   }
