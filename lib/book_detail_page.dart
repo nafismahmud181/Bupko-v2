@@ -73,11 +73,23 @@ class _BookDetailPageState extends State<BookDetailPage> {
 
     EpubDownloader downloader = EpubDownloader();
     _filePath =
-        await downloader.downloadEpub(widget.book.epubHREF!, (received, total) {
-      if (total != -1) {
-        setState(() => _progress = received / total);
-      }
-    });
+        await downloader.downloadEpub(
+          widget.book.epubHREF!,
+          (received, total) {
+            if (total != -1) {
+              setState(() => _progress = received / total);
+            }
+          },
+          {
+            'id': widget.book.title + '_' + widget.book.author, // or a unique id if available
+            'title': widget.book.title,
+            'author': widget.book.author,
+            'language': widget.book.language,
+            'imageSRC': widget.book.imageSRC,
+            'readonlineHREF': widget.book.readonlineHREF,
+            'epubHREF': widget.book.epubHREF,
+          },
+        );
 
     setState(() => _downloading = false);
 

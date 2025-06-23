@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'category_page.dart';
 import 'search_page.dart';
 import 'services/auth_service.dart';
+import 'screens/library_page.dart';
 
 import 'models/book.dart';
 import 'auth/login_page.dart';
@@ -96,7 +97,13 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Hello Jimmy!'),
+          title: Text(
+            'Hello ${_capitalize(
+              AuthService().currentUser?.displayName ??
+              AuthService().currentUser?.email?.split('@').first ??
+              'Guest'
+            )}',
+          ),
           centerTitle: true,
           actions: const [
             Padding(
@@ -129,7 +136,17 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-              // Add more ListTiles here for other pages if needed
+              ListTile(
+                leading: const Icon(Icons.library_books),
+                title: const Text('Library'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LibraryPage()),
+                  );
+                },
+              ),
               const Spacer(),
               if (AuthService().currentUser != null)
                 ListTile(
@@ -315,5 +332,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 }
