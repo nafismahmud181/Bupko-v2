@@ -221,6 +221,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         Text(
                           widget.book.title,
                           style: const TextStyle(
+                            color: Color(0xFF1D1D1F),
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),

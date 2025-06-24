@@ -476,7 +476,11 @@ class _BookCard extends StatelessWidget {
               book.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

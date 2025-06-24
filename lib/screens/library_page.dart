@@ -125,7 +125,14 @@ class _LibraryPageState extends State<LibraryPage> {
                 leading: data['imageSRC'] != null
                     ? Image.network(data['imageSRC'], width: 50, height: 70, fit: BoxFit.cover)
                     : const Icon(Icons.book, size: 50),
-                title: Text(data['title'] ?? 'Unknown Title'),
+                title: Text(
+                  data['title'] ?? 'Unknown Title',
+                  style: const TextStyle(
+                    color: Color(0xFF1D1D1F),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 subtitle: Text(data['author'] ?? ''),
                 trailing: FutureBuilder<bool>(
                   future: _fileExists(localPath),

@@ -44,7 +44,14 @@ class CategoryBooksPage extends StatelessWidget {
                         errorWidget: (context, url, error) => const Icon(Icons.book),
                       )
                     : const Icon(Icons.book, size: 50),
-                title: Text(book.title),
+                title: Text(
+                  book.title,
+                  style: const TextStyle(
+                    color: Color(0xFF1D1D1F),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 subtitle: Text(book.author),
                 onTap: () {
                   Navigator.push(

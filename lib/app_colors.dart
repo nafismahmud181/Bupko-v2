@@ -15,7 +15,7 @@ class AppColors {
   static const Color primaryText = Color(0xFF1D1D1F);
 
   /// Medium Gray (Secondary Text): #8E8E93
-  static const Color secondaryText = Color(0xFF8E8E93);
+  static const Color secondaryText = Color.fromARGB(255, 62, 62, 70);
 
   // --- SECONDARY & ACCENT PALETTE ---
   /// Light Lavender Gray (Overall Background): #EAEFFB
