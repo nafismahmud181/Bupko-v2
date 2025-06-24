@@ -2,6 +2,7 @@ import 'package:bupko_v2/category_page.dart';
 import 'package:bupko_v2/services/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
@@ -38,7 +39,7 @@ class App extends StatelessWidget {
                 titleTextStyle: TextStyle(
                     color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              fontFamily: 'Poppins',
+              fontFamily: GoogleFonts.rethinkSans().fontFamily,
               textTheme: const TextTheme(
                 bodyLarge: TextStyle(color: Colors.black),
                 bodyMedium: TextStyle(color: Colors.black),
@@ -55,7 +56,7 @@ class App extends StatelessWidget {
                 titleTextStyle: TextStyle(
                     color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              fontFamily: 'Poppins',
+              fontFamily: GoogleFonts.rethinkSans().fontFamily,
               textTheme: const TextTheme(
                 bodyLarge: TextStyle(color: Colors.white),
                 bodyMedium: TextStyle(color: Colors.white),
