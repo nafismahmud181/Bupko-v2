@@ -6,7 +6,7 @@ class AppColors {
 
   // --- PRIMARY PALETTE ---
   /// Vibrant Blue (Primary/Accent): #4C5DF4
-  static const Color primary = Color(0xFF4C5DF4);
+  static const Color primary = Color.fromARGB(255, 158, 164, 207);
   
   /// Pure White (Content Background): #FFFFFF
   static const Color white = Color(0xFFFFFFFF);

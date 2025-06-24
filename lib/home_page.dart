@@ -11,6 +11,7 @@ import 'profile_page.dart';
 
 import 'models/book.dart';
 import 'auth/login_page.dart';
+import 'app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -204,7 +205,6 @@ class _HomePageState extends State<HomePage> {
                                 final isSelected = category.categoryName == _selectedCategory;
                                 return _CategoryChip(
                                   label: category.categoryName,
-                                  iconName: category.icon,
                                   isSelected: isSelected,
                                   onTap: () {
                                     setState(() {
@@ -360,28 +360,14 @@ class _HomePageState extends State<HomePage> {
 
 class _CategoryChip extends StatelessWidget {
   final String label;
-  final String iconName;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _CategoryChip({
     required this.label,
-    required this.iconName,
     required this.isSelected,
     required this.onTap,
   });
-
-  static const Map<String, IconData> _iconMap = {
-    'auto_awesome': Icons.auto_awesome,
-    'favorite': Icons.favorite,
-    'theater_comedy': Icons.theater_comedy,
-    'local_offer': Icons.local_offer,
-    'museum': Icons.museum,
-    'architecture': Icons.architecture,
-    'palette': Icons.palette,
-    'history_edu': Icons.history_edu,
-    // Add other icon mappings here
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -389,28 +375,21 @@ class _CategoryChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF233974) : theme.cardColor,
+          color: isSelected ? AppColors.primary.withOpacity(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
-          border: isSelected ? null : Border.all(color: theme.dividerColor),
         ),
-        child: Row(
-          children: [
-            Icon(
-              _iconMap[iconName] ?? Icons.local_offer,
-              size: 20,
-              color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? const Color.fromARGB(255, 51, 75, 235) : AppColors.primaryText,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 16,
             ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
