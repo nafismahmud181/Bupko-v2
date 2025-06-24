@@ -251,19 +251,16 @@ class _BookDetailPageState extends State<BookDetailPage> {
                 ],
               ),
               const SizedBox(height: 24),
-              Text(
-                widget.book.title,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
               // Text(
-              //   "About this Ebook",
-              //   style: TextStyle(
-              //       fontSize: 14,
-              //       fontWeight: FontWeight.bold,
-              //       color: const Color.fromARGB(255, 255, 255, 255)),
-              //   textAlign: TextAlign.start,
+              //   widget.book.title,
+              //   style: Theme.of(context).textTheme.titleLarge,
               // ),
+              // const SizedBox(height: 24),
+              Text(
+                "About this Ebook",
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.start,
+              ),
               _loadingDescription
                   ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
@@ -271,10 +268,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     )
                   : Text(
                       _description ?? '',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color.fromARGB(255, 255, 255, 255),
-                      ),
+                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
             ],
           ),
@@ -297,7 +291,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     child: OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white),
+                        side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),

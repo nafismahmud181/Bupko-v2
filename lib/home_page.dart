@@ -237,10 +237,17 @@ class _HomePageState extends State<HomePage> {
                             labelStyle: TextStyle(
                               color: isSelected ? Colors.black : Colors.white,
                             ),
-                            shape: const StadiumBorder(),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: isSelected ? Colors.blueAccent : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
                           );
                         }).toList(),
                       ),
+                      const SizedBox(height: 24),
+
                       const Text(
                         'Popular Books',
                         style: TextStyle(
@@ -337,8 +344,6 @@ class _HomePageState extends State<HomePage> {
                           },
                         ),
                       ),
-                      // const SizedBox(height: 24),
-                      // Explore by Genre section (moved below Popular Books)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
