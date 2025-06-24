@@ -62,6 +62,37 @@ class _LibraryPageState extends State<LibraryPage> {
     });
   }
 
+  Future<void> _deleteBook(String docId, String? localPath) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Book'),
+        content: const Text('Are you sure you want to delete this book from your library and device?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (localPath != null) {
+        final file = File(localPath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      if (_uid != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_uid)
+            .collection('library')
+            .doc(docId)
+            .delete();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_uid == null) {
@@ -89,6 +120,7 @@ class _LibraryPageState extends State<LibraryPage> {
             itemBuilder: (context, i) {
               final data = books[i].data() as Map<String, dynamic>;
               final docId = books[i].id;
+              final localPath = data['localPath'] as String?;
               return ListTile(
                 leading: data['imageSRC'] != null
                     ? Image.network(data['imageSRC'], width: 50, height: 70, fit: BoxFit.cover)
@@ -96,32 +128,53 @@ class _LibraryPageState extends State<LibraryPage> {
                 title: Text(data['title'] ?? 'Unknown Title'),
                 subtitle: Text(data['author'] ?? ''),
                 trailing: FutureBuilder<bool>(
-                  future: _fileExists(data['localPath']),
+                  future: _fileExists(localPath),
                   builder: (context, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
                       return const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2));
                     }
-                    final exists = snap.data ?? false;
                     if (_downloadProgress.containsKey(docId)) {
                       return SizedBox(
                         width: 80,
                         child: LinearProgressIndicator(value: _downloadProgress[docId]),
                       );
                     }
-                    return ElevatedButton(
-                      onPressed: () async {
-                        if (exists) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => EpubReaderScreen(epubPath: data['localPath']),
+                    final exists = snap.data ?? false;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 25,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (exists) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EpubReaderScreen(epubPath: localPath!),
+                                  ),
+                                );
+                              } else {
+                                await _downloadBook(data, docId);
+                              }
+                            },
+                            child: Text(exists ? 'Read' : 'Download'),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          height: 25,
+                          child: ElevatedButton(
+                            onPressed: () => _deleteBook(docId, localPath),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
                             ),
-                          );
-                        } else {
-                          await _downloadBook(data, docId);
-                        }
-                      },
-                      child: Text(exists ? 'Read' : 'Download'),
+                            child: const Text('Delete'),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
