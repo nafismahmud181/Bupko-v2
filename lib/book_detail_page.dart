@@ -1,19 +1,25 @@
+import 'dart:convert';
+
 import 'package:bupko_v2/models/book.dart';
 import 'package:bupko_v2/screens/epub_reader_screen.dart';
 import 'package:bupko_v2/services/epub_downloader.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'services/auth_service.dart';
+
 import 'auth/login_page.dart';
 import 'auth/signup_page.dart';
+import 'services/auth_service.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
   final String categoryName;
 
-  const BookDetailPage({super.key, required this.book, required this.categoryName});
+  const BookDetailPage({
+    super.key,
+    required this.book,
+    required this.categoryName,
+  });
 
   @override
   State<BookDetailPage> createState() => _BookDetailPageState();
@@ -72,24 +78,26 @@ class _BookDetailPageState extends State<BookDetailPage> {
     setState(() => _downloading = true);
 
     EpubDownloader downloader = EpubDownloader();
-    _filePath =
-        await downloader.downloadEpub(
-          widget.book.epubHREF!,
-          (received, total) {
-            if (total != -1) {
-              setState(() => _progress = received / total);
-            }
-          },
-          {
-            'id': widget.book.title + '_' + widget.book.author, // or a unique id if available
-            'title': widget.book.title,
-            'author': widget.book.author,
-            'language': widget.book.language,
-            'imageSRC': widget.book.imageSRC,
-            'readonlineHREF': widget.book.readonlineHREF,
-            'epubHREF': widget.book.epubHREF,
-          },
-        );
+    _filePath = await downloader.downloadEpub(
+      widget.book.epubHREF!,
+      (received, total) {
+        if (total != -1) {
+          setState(() => _progress = received / total);
+        }
+      },
+      {
+        'id':
+            widget.book.title +
+            '_' +
+            widget.book.author, // or a unique id if available
+        'title': widget.book.title,
+        'author': widget.book.author,
+        'language': widget.book.language,
+        'imageSRC': widget.book.imageSRC,
+        'readonlineHREF': widget.book.readonlineHREF,
+        'epubHREF': widget.book.epubHREF,
+      },
+    );
 
     setState(() => _downloading = false);
 
@@ -108,11 +116,19 @@ class _BookDetailPageState extends State<BookDetailPage> {
     if (AuthService().currentUser != null) return true;
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => LoginPage(onSignUp: () {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => SignUpPage(onSignIn: () => Navigator.pop(context)),
-        ));
-      })),
+      MaterialPageRoute(
+        builder: (context) => LoginPage(
+          onSignUp: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    SignUpPage(onSignIn: () => Navigator.pop(context)),
+              ),
+            );
+          },
+        ),
+      ),
     );
     return result == true && AuthService().currentUser != null;
   }
@@ -125,9 +141,9 @@ class _BookDetailPageState extends State<BookDetailPage> {
 
   void _onFavorite() async {
     if (await _requireAuth()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Book added to favorites!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Book added to favorites!')));
     }
   }
 
@@ -161,7 +177,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                         Text(
+                        Text(
                           widget.categoryName,
                           style: TextStyle(
                             color: Colors.lightBlue,
@@ -205,42 +221,29 @@ class _BookDetailPageState extends State<BookDetailPage> {
                 children: [
                   Column(
                     children: [
-                      Text(
-                        'Reads',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      Text('Reads', style: TextStyle(color: Colors.grey)),
                       SizedBox(height: 4),
                       Text('5.1M'),
                     ],
                   ),
                   SizedBox(
                     height: 30,
-                    child: VerticalDivider(
-                      color: Colors.grey,
-                    ),
+                    child: VerticalDivider(color: Colors.grey),
                   ),
                   Column(
                     children: [
-                      Text(
-                        'Likes',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      Text('Likes', style: TextStyle(color: Colors.grey)),
                       SizedBox(height: 4),
                       Text('37.6K'),
                     ],
                   ),
                   SizedBox(
                     height: 30,
-                    child: VerticalDivider(
-                      color: Colors.grey,
-                    ),
+                    child: VerticalDivider(color: Colors.grey),
                   ),
                   Column(
                     children: [
-                      Text(
-                        'Episodes',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      Text('Episodes', style: TextStyle(color: Colors.grey)),
                       SizedBox(height: 4),
                       Text('25'),
                     ],
@@ -268,7 +271,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     )
                   : Text(
                       _description ?? '',
-                      style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 255, 255, 255)),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
                     ),
             ],
           ),
@@ -295,7 +301,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Read Book'),
+                      child: const Text('Read Online'),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -308,7 +314,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Play Book'),
+                      child: const Text('Download'),
                     ),
                   ),
                 ],
@@ -316,4 +322,4 @@ class _BookDetailPageState extends State<BookDetailPage> {
       ),
     );
   }
-} 
+}
