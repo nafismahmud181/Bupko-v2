@@ -67,6 +67,10 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    final user = AuthService().currentUser;
+    final name = user?.displayName ?? user?.email?.split('@').first;
+    final greeting = name != null ? 'Hello, ${_capitalize(name)}!' : 'Hello!';
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
@@ -98,126 +102,92 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Hello ${_capitalize(
-              AuthService().currentUser?.displayName ??
-              AuthService().currentUser?.email?.split('@').first ??
-              'Guest'
-            )}',
-          ),
-          centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProfilePage()),
-                  );
-                },
-                child: const CircleAvatar(
-                  backgroundImage: NetworkImage(
-                    'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png',
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        drawer: Drawer(
-          child: Column(
-            children: [
-              const DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                ),
-                child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.category),
-                title: const Text('Categories'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CategoryPage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.library_books),
-                title: const Text('Library'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LibraryPage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Profile'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProfilePage()),
-                  );
-                },
-              ),
-              const Spacer(),
-              if (AuthService().currentUser != null)
-                ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: const Text('Logout'),
-                  onTap: () async {
-                    await AuthService().signOut();
-                    if (context.mounted) {
-                      Navigator.of(context).pop(); // Close drawer
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const HomePage()),
-                        (route) => false,
-                      );
-                      setState(() {}); // Refresh UI
-                    }
-                  },
-                )
-              else
-                ListTile(
-                  leading: const Icon(Icons.login),
-                  title: const Text('Login'),
-                  onTap: () async {
-                    Navigator.of(context).pop(); // Close drawer
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LoginPage(
-                          onSignUp: () {}, // You can add sign up navigation if needed
-                        ),
-                      ),
-                    );
-                    if (result == true && context.mounted) {
-                      setState(() {}); // Refresh UI after login
-                    }
-                  },
-                ),
-            ],
-          ),
-        ),
+        // appBar: AppBar(
+        //   title: Text(
+        //     'Hello ${_capitalize(
+        //       AuthService().currentUser?.displayName ??
+        //       AuthService().currentUser?.email?.split('@').first ??
+        //       'Guest'
+        //     )}',
+        //   ),
+        //   centerTitle: true,
+        //   actions: [
+        //     Padding(
+        //       padding: const EdgeInsets.only(right: 16.0),
+        //       child: GestureDetector(
+        //         onTap: () {
+        //           Navigator.push(
+        //             context,
+        //             MaterialPageRoute(builder: (context) => const ProfilePage()),
+        //           );
+        //         },
+        //         child: const CircleAvatar(
+        //           backgroundImage: NetworkImage(
+        //             'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png',
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        // drawer: Drawer(
+        //   child: Column(
+        //     children: [
+        //       const DrawerHeader(
+        //         decoration: BoxDecoration(
+        //           color: Colors.deepPurple,
+        //         ),
+        //         child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+        //       ),
+        //       ListTile(
+        //         leading: const Icon(Icons.category),
+        //         title: const Text('Categories'),
+        //         onTap: () {
+        //           Navigator.pop(context);
+        //           Navigator.push(
+        //             context,
+        //             MaterialPageRoute(builder: (context) => const CategoryPage()),
+        //           );
+        //         },
+        //       ),
+        //       ListTile(
+        //         leading: const Icon(Icons.library_books),
+        //         title: const Text('Library'),
+        //         onTap: () {
+        //           Navigator.pop(context);
+        //           Navigator.push(
+        //             context,
+        //             MaterialPageRoute(builder: (context) => const LibraryPage()),
+        //           );
+        //         },
+        //       ),
+        //       ListTile(
+        //         leading: const Icon(Icons.person),
+        //         title: const Text('Profile'),
+        //         onTap: () {
+        //           Navigator.pop(context);
+        //           Navigator.push(
+        //             context,
+        //             MaterialPageRoute(builder: (context) => const ProfilePage()),
+        //           );
+        //         },
+        //       ),
+              
+        //     ],
+        //   ),
+        // ),
         body: _bookCategories.isEmpty
             ? const Center(child: Text('No books found.'))
             : SingleChildScrollView(
                 child: Column(
                   children: [
+                    SizedBox(height: 30),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Container(
                         padding: const EdgeInsets.all(24.0),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2c3e50),
+                          color: const Color(0xFF233974),
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                         child: Stack(
@@ -232,19 +202,19 @@ class _HomePageState extends State<HomePage> {
                               bottom: -10,
                               child: Icon(Icons.book, color: Colors.white.withOpacity(0.1), size: 80),
                             ),
-                            const Center(
+                            Center(
                               child: Column(
                                 children: [
                                   Text(
-                                    'Hello, Jelly!',
-                                    style: TextStyle(
+                                    greeting,
+                                    style: const TextStyle(
                                       fontSize: 28,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(height: 8),
-                                  Text(
+                                  const SizedBox(height: 8),
+                                  const Text(
                                     'Which book suits your current mood?',
                                     style: TextStyle(
                                       fontSize: 16,
