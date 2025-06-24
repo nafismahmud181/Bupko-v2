@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bupko_v2/models/book.dart';
 import 'package:bupko_v2/screens/epub_reader_screen.dart';
@@ -6,6 +7,7 @@ import 'package:bupko_v2/services/epub_downloader.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 import 'auth/login_page.dart';
 import 'auth/signup_page.dart';
@@ -31,11 +33,26 @@ class _BookDetailPageState extends State<BookDetailPage> {
   String? _filePath;
   String? _description;
   bool _loadingDescription = true;
+  bool _isDownloaded = false;
 
   @override
   void initState() {
     super.initState();
     fetchBookDescription();
+    _checkIfDownloaded();
+  }
+
+  Future<void> _checkIfDownloaded() async {
+    Directory appDocDir = await getApplicationDocumentsDirectory();
+    final bookId = widget.book.title + '_' + widget.book.author;
+    String filePath = "${appDocDir.path}/book_$bookId.epub";
+    File file = File(filePath);
+    if (await file.exists()) {
+      setState(() {
+        _isDownloaded = true;
+        _filePath = filePath;
+      });
+    }
   }
 
   Future<void> fetchBookDescription() async {
@@ -99,10 +116,26 @@ class _BookDetailPageState extends State<BookDetailPage> {
       },
     );
 
-    setState(() => _downloading = false);
+    setState(() {
+      _downloading = false;
+      if (_filePath != null) {
+        _isDownloaded = true;
+      }
+    });
 
     if (_filePath != null) {
       if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EpubReaderScreen(epubPath: _filePath!),
+        ),
+      );
+    }
+  }
+
+  void _onReadBook() {
+    if (_filePath != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -301,14 +334,14 @@ class _BookDetailPageState extends State<BookDetailPage> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _onPlayBook,
+                      onPressed: _isDownloaded ? _onReadBook : _onPlayBook,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Download'),
+                      child: Text(_isDownloaded ? 'Read' : 'Download'),
                     ),
                   ),
                 ],
