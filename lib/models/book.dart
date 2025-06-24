@@ -29,15 +29,22 @@ class Book {
 
 class BookCategory {
   final String categoryName;
+  final String icon;
   final List<Book> books;
 
-  BookCategory({required this.categoryName, required this.books});
+  BookCategory({
+    required this.categoryName,
+    required this.icon,
+    required this.books,
+  });
 
   factory BookCategory.fromJson(Map<String, dynamic> json) {
     var bookList = json['books'] as List;
     List<Book> books = bookList.map((i) => Book.fromJson(i)).toList();
+
     return BookCategory(
       categoryName: json['categoryName'],
+      icon: json['icon'] ?? 'local_offer',
       books: books,
     );
   }

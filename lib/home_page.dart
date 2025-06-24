@@ -35,10 +35,12 @@ class _HomePageState extends State<HomePage> {
     final categoriesSnapshot = await FirebaseFirestore.instance.collection('categories').get();
     List<BookCategory> categories = [];
     for (var categoryDoc in categoriesSnapshot.docs) {
-      final categoryName = categoryDoc['categoryName'] as String;
+      final categoryData = categoryDoc.data();
+      final categoryName = categoryData['categoryName'] as String;
+      final icon = categoryData['Icon'] as String? ?? 'local_offer';
       final booksSnapshot = await categoryDoc.reference.collection('books').get();
       final books = booksSnapshot.docs.map((doc) => Book.fromJson(doc.data())).toList();
-      categories.add(BookCategory(categoryName: categoryName, books: books));
+      categories.add(BookCategory(categoryName: categoryName, icon: icon, books: books));
     }
     if (!mounted) return;
     setState(() {
@@ -234,134 +236,44 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Wrap(
-                            spacing: 10.0,
-                            runSpacing: 10.0,
-                            children: _bookCategories.map((category) {
-                              final isSelected =
-                                  category.categoryName == _selectedCategory;
-                              return ChoiceChip(
-                                label: Text(category.categoryName),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  if (selected) {
+                          SizedBox(
+                            height: 50,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _bookCategories.length,
+                              separatorBuilder: (context, index) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final category = _bookCategories[index];
+                                final isSelected = category.categoryName == _selectedCategory;
+                                return _CategoryChip(
+                                  label: category.categoryName,
+                                  iconName: category.icon,
+                                  isSelected: isSelected,
+                                  onTap: () {
                                     setState(() {
                                       _selectedCategory = category.categoryName;
                                     });
-                                  }
-                                },
-                                backgroundColor: Colors.grey[800],
-                                selectedColor: Colors.white,
-                                labelStyle: TextStyle(
-                                  color: isSelected ? Colors.black : Colors.white,
-                                ),
-                                shape: StadiumBorder(
-                                  side: BorderSide(
-                                    color: isSelected ? Colors.blueAccent : Colors.transparent,
-                                    width: 2,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                          const SizedBox(height: 24),
-
-                          const Text(
-                            'Popular Books',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                                  },
+                                );
+                              },
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           SizedBox(
-                            height: 280,
+                            height: 300,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: popularBooks.length,
                               itemBuilder: (context, index) {
                                 final book = popularBooks[index];
-                                final categoryName = _selectedCategory;
-                                return Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => BookDetailPage(
-                                              book: book,
-                                              categoryName: categoryName,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: SizedBox(
-                                        width: 130,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: BorderRadius.circular(8.0),
-                                              child: book.imageSRC.isNotEmpty
-                                                  ? CachedNetworkImage(
-                                                      imageUrl: book.imageSRC,
-                                                      height: 190,
-                                                      width: 130,
-                                                      fit: BoxFit.cover,
-                                                      placeholder: (context, url) =>
-                                                          Container(
-                                                            height: 190,
-                                                            width: 150,
-                                                            color: Colors.grey[800],
-                                                            child: const Center(
-                                                              child: CircularProgressIndicator(),
-                                                            ),
-                                                          ),
-                                                      errorWidget: (context, url, error) =>
-                                                          Container(
-                                                            height: 190,
-                                                            width: 150,
-                                                            color: Colors.grey[800],
-                                                            child: const Icon(Icons.book),
-                                                          ),
-                                                    )
-                                                  : Container(
-                                                      height: 190,
-                                                      width: 130,
-                                                      color: Colors.grey[800],
-                                                      child: const Icon(Icons.book),
-                                                    ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              book.title.length > 13
-                                                  ? '${book.title.substring(0, 13)}...'
-                                                  : book.title,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              book.author.length > 13
-                                                  ? '${book.author.substring(0, 13)}...'
-                                                  : book.author,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    if (index != popularBooks.length - 1)
-                                      const SizedBox(width: 16),
-                                  ],
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: _BookCard(book: book, categoryName: _selectedCategory),
                                 );
                               },
                             ),
                           ),
+                          const SizedBox(height: 24),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -486,5 +398,160 @@ class _HomePageState extends State<HomePage> {
   String _capitalize(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1);
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String label;
+  final String iconName;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryChip({
+    required this.label,
+    required this.iconName,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  static const Map<String, IconData> _iconMap = {
+    'auto_awesome': Icons.auto_awesome,
+    'favorite': Icons.favorite,
+    'theater_comedy': Icons.theater_comedy,
+    'local_offer': Icons.local_offer,
+    'museum': Icons.museum,
+    'architecture': Icons.architecture,
+    'palette': Icons.palette,
+    'history_edu': Icons.history_edu,
+    // Add other icon mappings here
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF233974) : theme.cardColor,
+          borderRadius: BorderRadius.circular(30),
+          border: isSelected ? null : Border.all(color: theme.dividerColor),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _iconMap[iconName] ?? Icons.local_offer,
+              size: 20,
+              color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BookCard extends StatelessWidget {
+  final Book book;
+  final String categoryName;
+
+  const _BookCard({required this.book, required this.categoryName});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookDetailPage(
+              book: book,
+              categoryName: categoryName,
+            ),
+          ),
+        );
+      },
+      child: SizedBox(
+        width: 150,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: CachedNetworkImage(
+                    imageUrl: book.imageSRC,
+                    height: 220,
+                    width: 150,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 220,
+                      width: 150,
+                      color: Colors.grey[800],
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      height: 220,
+                      width: 150,
+                      color: Colors.grey[800],
+                      child: const Icon(Icons.book, size: 50),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.yellow, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '4.5/5', // This is a placeholder
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              book.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              book.author,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
