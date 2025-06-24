@@ -1,9 +1,11 @@
+import 'package:bupko_v2/category_page.dart';
 import 'package:bupko_v2/services/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
+import 'package:bupko_v2/models/bottom_nav.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,13 +35,14 @@ class App extends StatelessWidget {
                 backgroundColor: Colors.white,
                 elevation: 0,
                 iconTheme: IconThemeData(color: Colors.black),
-                titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold)
+                titleTextStyle: TextStyle(
+                    color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               fontFamily: 'Poppins',
               textTheme: const TextTheme(
                 bodyLarge: TextStyle(color: Colors.black),
                 bodyMedium: TextStyle(color: Colors.black),
-              )
+              ),
             ),
             darkTheme: ThemeData(
               brightness: Brightness.dark,
@@ -49,20 +52,25 @@ class App extends StatelessWidget {
                 backgroundColor: Color(0xFF121212),
                 elevation: 0,
                 iconTheme: IconThemeData(color: Colors.white),
-                titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)
+                titleTextStyle: TextStyle(
+                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               fontFamily: 'Poppins',
               textTheme: const TextTheme(
                 bodyLarge: TextStyle(color: Colors.white),
                 bodyMedium: TextStyle(color: Colors.white),
-              )
+              ),
             ),
             themeMode: themeProvider.darkTheme ? ThemeMode.dark : ThemeMode.light,
-            home: const HomePage(),
+            initialRoute: '/home',
+            routes: {
+              '/home': (context) => const MainScaffold(body: HomePage()),
+              '/catagories': (context) => const MainScaffold(body: CategoryPage()),
+              // Add more routes here
+            },
           );
         },
       ),
     );
   }
 }
-

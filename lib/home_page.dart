@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'category_page.dart';
-import 'search_page.dart';
+
 import 'services/auth_service.dart';
 import 'screens/library_page.dart';
 import 'category_books_page.dart';
@@ -461,16 +461,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SearchPage()),
-            );
-          },
-          icon: const Icon(Icons.search),
-          label: const Text('Search'),
-        ),
       ),
     );
   }
