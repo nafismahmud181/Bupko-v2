@@ -10,6 +10,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
@@ -36,6 +37,8 @@ class _SignUpPageState extends State<SignUpPage> {
       if (user == null) {
         setState(() => _error = 'Sign up failed.');
       } else {
+        await user.updateDisplayName(_nameController.text.trim());
+        await user.reload();
         Navigator.of(context).pop(true); // Return true to indicate success
       }
     } catch (e) {
@@ -80,6 +83,16 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(

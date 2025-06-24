@@ -28,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
       if (user == null) {
         setState(() => _error = 'Sign in failed.');
       } else {
+        await user.reload();
         Navigator.of(context).pop(true); // Return true to indicate success
       }
     } catch (e) {

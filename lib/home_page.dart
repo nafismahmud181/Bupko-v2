@@ -183,53 +183,10 @@ class _HomePageState extends State<HomePage> {
             : SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(24.0),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF233974),
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: -20,
-                              top: 40,
-                              child: Icon(Icons.book, color: Colors.white.withOpacity(0.1), size: 50),
-                            ),
-                            Positioned(
-                              right: -10,
-                              bottom: -10,
-                              child: Icon(Icons.book, color: Colors.white.withOpacity(0.1), size: 80),
-                            ),
-                            Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    greeting,
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Which book suits your current mood?',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white70,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: _HomeHeader(name: name),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -552,6 +509,80 @@ class _BookCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  final String? name;
+  const _HomeHeader({this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    String? displayName = name != null && name!.isNotEmpty
+        ? name![0].toUpperCase() + name!.substring(1)
+        : null;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+              Text(
+                displayName != null ? 'Hello $displayName,' : 'Hello!',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1D1D1F), // AppColors.primaryText
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'What book would you like to read?',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[500], // AppColors.secondaryText
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined, size: 28, color: Color(0xFF1D1D1F)),
+              onPressed: () {},
+            ),
+            Positioned(
+              right: 6,
+              top: 6,
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
+                child: const Text(
+                  '2',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
