@@ -161,11 +161,9 @@ class _EpubReaderScreenState extends State<EpubReaderScreen> {
       controller: _epubController,
       onExternalLinkPressed: (href) {
         // Handle external links
-        print('External link pressed: $href');
       },
       onChapterChanged: (chapter) {
         // Update UI when chapter changes
-        print('Chapter changed');
       },
     );
   }
