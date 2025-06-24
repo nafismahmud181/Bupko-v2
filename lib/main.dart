@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
-import 'package:bupko_v2/models/bottom_nav.dart';
+// import 'package:bupko_v2/models/bottom_nav.dart';
 import 'package:bupko_v2/screens/bottomnav.dart';
 
 void main() async {
@@ -65,11 +65,6 @@ class App extends StatelessWidget {
             ),
             themeMode: themeProvider.darkTheme ? ThemeMode.dark : ThemeMode.light,
             home: const BottomNav(),
-            routes: {
-              '/home': (context) => const MainScaffold(body: HomePage()),
-              '/catagories': (context) => const MainScaffold(body: CategoryPage()),
-              // Add more routes here
-            },
           );
         },
       ),
