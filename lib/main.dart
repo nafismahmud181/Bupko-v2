@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'home_page.dart';
 // import 'package:bupko_v2/models/bottom_nav.dart';
 import 'package:bupko_v2/screens/bottomnav.dart';
+import 'package:bupko_v2/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,19 +32,64 @@ class App extends StatelessWidget {
             title: 'Ebook Library',
             theme: ThemeData(
               brightness: Brightness.light,
-              primaryColor: Colors.white,
-              scaffoldBackgroundColor: Colors.white,
+              primaryColor: AppColors.primary,
+              scaffoldBackgroundColor: AppColors.white,
+              dividerColor: AppColors.placeholder,
               appBarTheme: const AppBarTheme(
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.white,
                 elevation: 0,
-                iconTheme: IconThemeData(color: Colors.black),
-                titleTextStyle: TextStyle(
-                    color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                iconTheme: IconThemeData(color: AppColors.primaryText),
+                titleTextStyle: TextStyle(color: AppColors.primaryText, fontSize: 20, fontWeight: FontWeight.bold)
               ),
               fontFamily: GoogleFonts.rethinkSans().fontFamily,
               textTheme: const TextTheme(
-                bodyLarge: TextStyle(color: Colors.black),
-                bodyMedium: TextStyle(color: Colors.black),
+                bodyLarge: TextStyle(color: AppColors.primaryText),
+                bodyMedium: TextStyle(color: AppColors.secondaryText),
+                titleLarge: TextStyle(color: AppColors.primaryText, fontWeight: FontWeight.bold),
+              ),
+              colorScheme: ColorScheme.light(
+                primary: AppColors.primary,
+                background: AppColors.background,
+                surface: AppColors.white,
+                onPrimary: AppColors.white,
+                onSurface: AppColors.primaryText,
+                secondary: AppColors.progress,
+                error: AppColors.notification,
+              ),
+              outlinedButtonTheme: OutlinedButtonThemeData(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  shape: const StadiumBorder(),
+                ),
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                  shape: const StadiumBorder(),
+                ),
+              ),
+              inputDecorationTheme: const InputDecorationTheme(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.placeholder),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.placeholder),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.primary),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ),
+                labelStyle: TextStyle(color: AppColors.secondaryText),
+                hintStyle: TextStyle(color: AppColors.placeholder),
+                fillColor: AppColors.white,
+                filled: true,
+              ),
+              progressIndicatorTheme: const ProgressIndicatorThemeData(
+                color: AppColors.progress,
               ),
             ),
             darkTheme: ThemeData(
