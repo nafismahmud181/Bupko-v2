@@ -1,6 +1,6 @@
 import 'package:bupko_v2/home_page.dart';
 import 'package:bupko_v2/screens/library_page.dart';
-import 'package:bupko_v2/screens/profile_page.dart';
+import 'package:bupko_v2/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bupko_v2/category_page.dart';
 

@@ -7,6 +7,7 @@ import 'search_page.dart';
 import 'services/auth_service.dart';
 import 'screens/library_page.dart';
 import 'category_books_page.dart';
+import 'profile_page.dart';
 
 import 'models/book.dart';
 import 'auth/login_page.dart';
@@ -106,12 +107,20 @@ class _HomePageState extends State<HomePage> {
             )}',
           ),
           centerTitle: true,
-          actions: const [
+          actions: [
             Padding(
-              padding: EdgeInsets.only(right: 16.0),
-              child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png',
+              padding: const EdgeInsets.only(right: 16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProfilePage()),
+                  );
+                },
+                child: const CircleAvatar(
+                  backgroundImage: NetworkImage(
+                    'https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png',
+                  ),
                 ),
               ),
             ),
@@ -145,6 +154,17 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const LibraryPage()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('Profile'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProfilePage()),
                   );
                 },
               ),
