@@ -75,7 +75,7 @@ class _BottomNavState extends State<BottomNav> {
                 ),
               ],
               currentIndex: _selectedIndex,
-              selectedItemColor: const Color(0xFF233974),
+              selectedItemColor: const Color.fromARGB(255, 51, 75, 235),
               unselectedItemColor: Colors.grey,
               onTap: _onItemTapped,
               backgroundColor: Colors.transparent,

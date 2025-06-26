@@ -5,12 +5,9 @@ import 'package:flutter/material.dart';
 import 'category_page.dart';
 
 import 'services/auth_service.dart';
-import 'screens/library_page.dart';
 import 'category_books_page.dart';
-import 'profile_page.dart';
 
 import 'models/book.dart';
-import 'auth/login_page.dart';
 import 'app_colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -181,171 +178,175 @@ class _HomePageState extends State<HomePage> {
         // ),
         body: _bookCategories.isEmpty
             ? const Center(child: Text('No books found.'))
-            : SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 30),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: _HomeHeader(name: name),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 50,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _bookCategories.length,
-                              separatorBuilder: (context, index) => const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                final category = _bookCategories[index];
-                                final isSelected = category.categoryName == _selectedCategory;
-                                return _CategoryChip(
-                                  label: category.categoryName,
-                                  isSelected: isSelected,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCategory = category.categoryName;
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            height: 300,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: popularBooks.length,
-                              itemBuilder: (context, index) {
-                                final book = popularBooks[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 16.0),
-                                  child: _BookCard(book: book, categoryName: _selectedCategory),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Explore by Genre',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios, size: 18),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const CategoryPage()),
+            : RefreshIndicator(
+                onRefresh: _fetchBooksFromFirestore,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        child: _HomeHeader(name: name),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 50,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _bookCategories.length,
+                                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                                itemBuilder: (context, index) {
+                                  final category = _bookCategories[index];
+                                  final isSelected = category.categoryName == _selectedCategory;
+                                  return _CategoryChip(
+                                    label: category.categoryName,
+                                    isSelected: isSelected,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategory = category.categoryName;
+                                      });
+                                    },
                                   );
                                 },
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 110,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _bookCategories.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 12),
-                              itemBuilder: (context, index) {
-                                final category = _bookCategories[index];
-                                final firestoreCategory = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
-                                final imageUrl = category.books.isNotEmpty && category.books.first.imageSRC.isNotEmpty
-                                  ? category.books.first.imageSRC
-                                  : '';
-                                final categoryDoc = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
-                                return FutureBuilder<QuerySnapshot>(
-                                  future: FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName).get(),
-                                  builder: (context, snapshot) {
-                                    String? firestoreImageUrl;
-                                    DocumentReference? categoryRef;
-                                    if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                                      firestoreImageUrl = snapshot.data!.docs.first['image'] ?? '';
-                                      categoryRef = snapshot.data!.docs.first.reference;
-                                    }
-                                    return GestureDetector(
-                                      onTap: () {
-                                        if (categoryRef != null) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => CategoryBooksPage(
-                                                categoryRef: categoryRef!,
-                                                categoryName: category.categoryName,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(16),
-                                            child: firestoreImageUrl != null && firestoreImageUrl.isNotEmpty
-                                                ? Image.network(
-                                                    firestoreImageUrl,
-                                                    width: 160,
-                                                    height: 100,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                : Container(
-                                                    width: 160,
-                                                    height: 100,
-                                                    color: Colors.grey[800],
-                                                    child: const Icon(Icons.category, color: Colors.white, size: 40),
-                                                  ),
-                                          ),
-                                          Container(
-                                            width: 160,
-                                            height: 100,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(16),
-                                              color: Colors.black.withOpacity(0.4),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            left: 12,
-                                            bottom: 12,
-                                            child: Text(
-                                              category.categoryName,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                shadows: [
-                                                  Shadow(
-                                                    blurRadius: 4,
-                                                    color: Colors.black54,
-                                                    offset: Offset(1, 1),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              height: 300,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: popularBooks.length,
+                                itemBuilder: (context, index) {
+                                  final book = popularBooks[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 16.0),
+                                    child: _BookCard(book: book, categoryName: _selectedCategory),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Explore by Genre',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const CategoryPage()),
                                     );
                                   },
-                                );
-                              },
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              height: 110,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _bookCategories.length,
+                                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                                itemBuilder: (context, index) {
+                                  final category = _bookCategories[index];
+                                  final firestoreCategory = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
+                                  final imageUrl = category.books.isNotEmpty && category.books.first.imageSRC.isNotEmpty
+                                    ? category.books.first.imageSRC
+                                    : '';
+                                  final categoryDoc = FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName);
+                                  return FutureBuilder<QuerySnapshot>(
+                                    future: FirebaseFirestore.instance.collection('categories').where('categoryName', isEqualTo: category.categoryName).get(),
+                                    builder: (context, snapshot) {
+                                      String? firestoreImageUrl;
+                                      DocumentReference? categoryRef;
+                                      if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+                                        firestoreImageUrl = snapshot.data!.docs.first['image'] ?? '';
+                                        categoryRef = snapshot.data!.docs.first.reference;
+                                      }
+                                      return GestureDetector(
+                                        onTap: () {
+                                          if (categoryRef != null) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => CategoryBooksPage(
+                                                  categoryRef: categoryRef!,
+                                                  categoryName: category.categoryName,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(16),
+                                              child: firestoreImageUrl != null && firestoreImageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      firestoreImageUrl,
+                                                      width: 160,
+                                                      height: 100,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : Container(
+                                                      width: 160,
+                                                      height: 100,
+                                                      color: Colors.grey[800],
+                                                      child: const Icon(Icons.category, color: Colors.white, size: 40),
+                                                    ),
+                                            ),
+                                            Container(
+                                              width: 160,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(16),
+                                                color: Colors.black.withOpacity(0.4),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              left: 12,
+                                              bottom: 12,
+                                              child: Text(
+                                                category.categoryName,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  shadows: [
+                                                    Shadow(
+                                                      blurRadius: 4,
+                                                      color: Colors.black54,
+                                                      offset: Offset(1, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
       ),

@@ -90,50 +90,58 @@ class _SearchPageState extends State<SearchPage> {
             ),
           if (_results.isNotEmpty)
             Expanded(
-              child: ListView.separated(
-                itemCount: _results.length,
-                separatorBuilder: (context, index) => const Divider(),
-                itemBuilder: (context, index) {
-                  final bookMap = _results[index].data() as Map<String, dynamic>;
-                  final book = Book.fromJson(bookMap);
-                  final categoryName = _results[index].reference.parent.parent?.id ?? '';
-                  return ListTile(
-                    leading: book.imageSRC.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: book.imageSRC,
-                            width: 50,
-                            height: 70,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const SizedBox(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  if (_query.isNotEmpty) {
+                    _onSearchChanged(_query);
+                  }
+                },
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: _results.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final bookMap = _results[index].data() as Map<String, dynamic>;
+                    final book = Book.fromJson(bookMap);
+                    final categoryName = _results[index].reference.parent.parent?.id ?? '';
+                    return ListTile(
+                      leading: book.imageSRC.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: book.imageSRC,
                               width: 50,
                               height: 70,
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => const Icon(Icons.book),
-                          )
-                        : const Icon(Icons.book, size: 50),
-                    title: Text(
-                      book.title,
-                      style: const TextStyle(
-                        color: Color(0xFF1D1D1F),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    subtitle: Text(book.author),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BookDetailPage(
-                            book: book,
-                            categoryName: categoryName,
-                          ),
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const SizedBox(
+                                width: 50,
+                                height: 70,
+                                child: Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(Icons.book),
+                            )
+                          : const Icon(Icons.book, size: 50),
+                      title: Text(
+                        book.title,
+                        style: const TextStyle(
+                          color: Color(0xFF1D1D1F),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
-                      );
-                    },
-                  );
-                },
+                      ),
+                      subtitle: Text(book.author),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookDetailPage(
+                              book: book,
+                              categoryName: categoryName,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ),
         ],

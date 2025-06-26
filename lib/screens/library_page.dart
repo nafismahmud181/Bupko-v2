@@ -14,12 +14,41 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> {
   late final String? _uid;
-  Map<String, double> _downloadProgress = {};
+  final Map<String, double> _downloadProgress = {};
+  Stream<QuerySnapshot>? _libraryStream;
 
   @override
   void initState() {
     super.initState();
     _uid = FirebaseAuth.instance.currentUser?.uid;
+    _initializeStream();
+  }
+
+  void _initializeStream() {
+    if (_uid != null) {
+      _libraryStream = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_uid)
+          .collection('library')
+          .snapshots();
+    }
+  }
+
+  Future<void> _refreshLibrary() async {
+    // Temporarily clear the stream to show refresh indicator
+    setState(() {
+      _libraryStream = null;
+    });
+    
+    // Wait a bit to show the refresh indicator
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    // Reinitialize the stream
+    if (mounted) {
+      setState(() {
+        _initializeStream();
+      });
+    }
   }
 
   Future<bool> _fileExists(String? path) async {
@@ -98,97 +127,100 @@ class _LibraryPageState extends State<LibraryPage> {
     if (_uid == null) {
       return const Center(child: Text('Please log in to view your library.'));
     }
-    final libraryRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(_uid)
-        .collection('library');
     return Scaffold(
       appBar: AppBar(title: const Text('My Library')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: libraryRef.snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No books in your library yet.'));
-          }
-          final books = snapshot.data!.docs;
-          return ListView.separated(
-            itemCount: books.length,
-            separatorBuilder: (context, i) => const Divider(),
-            itemBuilder: (context, i) {
-              final data = books[i].data() as Map<String, dynamic>;
-              final docId = books[i].id;
-              final localPath = data['localPath'] as String?;
-              return ListTile(
-                leading: data['imageSRC'] != null
-                    ? Image.network(data['imageSRC'], width: 50, height: 70, fit: BoxFit.cover)
-                    : const Icon(Icons.book, size: 50),
-                title: Text(
-                  data['title'] ?? 'Unknown Title',
-                  style: const TextStyle(
-                    color: Color(0xFF1D1D1F),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+      body: RefreshIndicator(
+        onRefresh: _refreshLibrary,
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _libraryStream,
+          builder: (context, snapshot) {
+            if (_libraryStream == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('No books in your library yet.'));
+            }
+            final books = snapshot.data!.docs;
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: books.length,
+              separatorBuilder: (context, i) => const Divider(),
+              itemBuilder: (context, i) {
+                final data = books[i].data() as Map<String, dynamic>;
+                final docId = books[i].id;
+                final localPath = data['localPath'] as String?;
+                return ListTile(
+                  leading: data['imageSRC'] != null
+                      ? Image.network(data['imageSRC'], width: 50, height: 70, fit: BoxFit.cover)
+                      : const Icon(Icons.book, size: 50),
+                  title: Text(
+                    data['title'] ?? 'Unknown Title',
+                    style: const TextStyle(
+                      color: Color(0xFF1D1D1F),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                subtitle: Text(data['author'] ?? ''),
-                trailing: FutureBuilder<bool>(
-                  future: _fileExists(localPath),
-                  builder: (context, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) {
-                      return const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2));
-                    }
-                    if (_downloadProgress.containsKey(docId)) {
-                      return SizedBox(
-                        width: 80,
-                        child: LinearProgressIndicator(value: _downloadProgress[docId]),
-                      );
-                    }
-                    final exists = snap.data ?? false;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 25,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (exists) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EpubReaderScreen(epubPath: localPath!),
-                                  ),
-                                );
-                              } else {
-                                await _downloadBook(data, docId);
-                              }
-                            },
-                            child: Text(exists ? 'Read' : 'Download'),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          height: 25,
-                          child: ElevatedButton(
-                            onPressed: () => _deleteBook(docId, localPath),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
+                  subtitle: Text(data['author'] ?? ''),
+                  trailing: FutureBuilder<bool>(
+                    future: _fileExists(localPath),
+                    builder: (context, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
+                        return const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2));
+                      }
+                      if (_downloadProgress.containsKey(docId)) {
+                        return SizedBox(
+                          width: 80,
+                          child: LinearProgressIndicator(value: _downloadProgress[docId]),
+                        );
+                      }
+                      final exists = snap.data ?? false;
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 25,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (exists) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EpubReaderScreen(epubPath: localPath!),
+                                    ),
+                                  );
+                                } else {
+                                  await _downloadBook(data, docId);
+                                }
+                              },
+                              child: Text(exists ? 'Read' : 'Download'),
                             ),
-                            child: const Text('Delete'),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        },
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 25,
+                            child: ElevatedButton(
+                              onPressed: () => _deleteBook(docId, localPath),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Delete'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

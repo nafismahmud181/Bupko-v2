@@ -44,7 +44,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
 
   Future<void> _checkIfDownloaded() async {
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    final bookId = widget.book.title + '_' + widget.book.author;
+    final bookId = '${widget.book.title}_${widget.book.author}';
     String filePath = "${appDocDir.path}/book_$bookId.epub";
     File file = File(filePath);
     if (await file.exists()) {
@@ -104,9 +104,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
       },
       {
         'id':
-            widget.book.title +
-            '_' +
-            widget.book.author, // or a unique id if available
+            '${widget.book.title}_${widget.book.author}', // or a unique id if available
         'title': widget.book.title,
         'author': widget.book.author,
         'language': widget.book.language,
@@ -325,7 +323,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     child: OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Theme.of(context).colorScheme.onBackground),
+                        side: BorderSide(color: Theme.of(context).colorScheme.onSurface),
                         shape: const StadiumBorder(),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
