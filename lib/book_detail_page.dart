@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'auth/login_page.dart';
 import 'auth/signup_page.dart';
 import 'services/auth_service.dart';
+import 'screens/author_profile_page.dart';
 
 class BookDetailPage extends StatefulWidget {
   final Book book;
@@ -225,7 +226,23 @@ class _BookDetailPageState extends State<BookDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text('By ${widget.book.author}'),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AuthorProfilePage(authorName: widget.book.author),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'By ${widget.book.author}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         const Text('Published August 28th 2012'),
                       ],
