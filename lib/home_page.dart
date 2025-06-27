@@ -37,7 +37,11 @@ class _HomePageState extends State<HomePage> {
       final categoryName = categoryData['categoryName'] as String;
       final icon = categoryData['Icon'] as String? ?? 'local_offer';
       final booksSnapshot = await categoryDoc.reference.collection('books').get();
-      final books = booksSnapshot.docs.map((doc) => Book.fromJson(doc.data())).toList();
+      var books = booksSnapshot.docs.map((doc) => Book.fromJson(doc.data())).toList();
+      books.shuffle();
+      if (books.length > 100) {
+        books = books.take(100).toList();
+      }
       categories.add(BookCategory(categoryName: categoryName, icon: icon, books: books));
     }
     if (!mounted) return;
