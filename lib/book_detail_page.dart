@@ -239,7 +239,6 @@ class _BookDetailPageState extends State<BookDetailPage> {
                             'By ${widget.book.author}',
                             style: const TextStyle(
                               color: Colors.blue,
-                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
