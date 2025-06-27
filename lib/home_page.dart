@@ -272,7 +272,10 @@ class _HomePageState extends State<HomePage> {
                                       String? firestoreImageUrl;
                                       DocumentReference? categoryRef;
                                       if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                                        firestoreImageUrl = snapshot.data!.docs.first['image'] ?? '';
+                                        final docData = snapshot.data!.docs.first.data() as Map<String, dynamic>;
+                                        firestoreImageUrl = docData.containsKey('image') && (docData['image'] ?? '').toString().isNotEmpty
+                                            ? docData['image']
+                                            : 'https://www.keycdn.com/img/support/image-processing-lg.webp';
                                         categoryRef = snapshot.data!.docs.first.reference;
                                       }
                                       return GestureDetector(

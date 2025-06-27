@@ -32,4 +32,7 @@ class AppColors {
 
   /// Primary Button (Light Mode): #805CF5
   static const Color primaryButton = Color(0xFF805CF5);
+
+  /// Background (Dark Mode): #1E1E2A
+  static const Color darkBackground = Color(0xFF1E1E2A);
 } 

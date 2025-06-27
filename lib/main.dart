@@ -103,18 +103,21 @@ class App extends StatelessWidget {
             darkTheme: ThemeData(
               brightness: Brightness.dark,
               primaryColor: const Color(0xFF121212),
-              scaffoldBackgroundColor: const Color(0xFF121212),
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Color(0xFF121212),
+              scaffoldBackgroundColor: AppColors.darkBackground,
+              appBarTheme: AppBarTheme(
+                backgroundColor: AppColors.darkBackground,
                 elevation: 0,
-                iconTheme: IconThemeData(color: Colors.white),
-                titleTextStyle: TextStyle(
+                iconTheme: const IconThemeData(color: Colors.white),
+                titleTextStyle: const TextStyle(
                     color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
               ),
               fontFamily: GoogleFonts.rethinkSans().fontFamily,
               textTheme: const TextTheme(
                 bodyLarge: TextStyle(color: Colors.white),
                 bodyMedium: TextStyle(color: Colors.white),
+              ),
+              bottomNavigationBarTheme: BottomNavigationBarThemeData(
+                backgroundColor: AppColors.darkBackground,
               ),
             ),
             themeMode: themeProvider.darkTheme ? ThemeMode.dark : ThemeMode.light,

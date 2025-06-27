@@ -53,8 +53,11 @@ class _CategoryPageState extends State<CategoryPage> {
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
+                  final categoryData = category.data() as Map<String, dynamic>;
                   final categoryName = category['categoryName'] ?? '';
-                  final imageUrl = category['image'] ?? '';
+                  final imageUrl = (categoryData.containsKey('image') && (categoryData['image'] ?? '').toString().isNotEmpty)
+                      ? categoryData['image']
+                      : 'https://www.keycdn.com/img/support/image-processing-lg.webp';
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(

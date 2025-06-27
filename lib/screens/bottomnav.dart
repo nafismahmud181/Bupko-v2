@@ -67,7 +67,7 @@ class _BottomNavState extends State<BottomNav> {
         ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? Colors.white,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -90,9 +90,9 @@ class _BottomNavState extends State<BottomNav> {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.bookmark_border),
-                    activeIcon: Icon(Icons.bookmark),
-                    label: 'Bookmark',
+                    icon: Icon(Icons.library_books),
+                    activeIcon: Icon(Icons.library_books),
+                    label: 'Library',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.search_outlined),
