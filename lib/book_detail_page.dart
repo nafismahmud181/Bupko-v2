@@ -35,12 +35,14 @@ class _BookDetailPageState extends State<BookDetailPage> {
   String? _description;
   bool _loadingDescription = true;
   bool _isDownloaded = false;
+  bool _isFavorite = false;
 
   @override
   void initState() {
     super.initState();
     fetchBookDescription();
     _checkIfDownloaded();
+    _checkFavorite();
   }
 
   Future<void> _checkIfDownloaded() async {
@@ -87,6 +89,44 @@ class _BookDetailPageState extends State<BookDetailPage> {
         _description = 'Failed to fetch description.';
         _loadingDescription = false;
       });
+    }
+  }
+
+  Future<void> _checkFavorite() async {
+    final bookId = '${widget.book.title}_${widget.book.author}';
+    final fav = await AuthService().isFavorite(bookId);
+    if (mounted) {
+      setState(() {
+        _isFavorite = fav;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (!await _requireAuth()) return;
+    final bookId = '${widget.book.title}_${widget.book.author}';
+    final bookData = {
+      'id': bookId,
+      'title': widget.book.title,
+      'author': widget.book.author,
+      'language': widget.book.language,
+      'imageSRC': widget.book.imageSRC,
+      'readonlineHREF': widget.book.readonlineHREF,
+      'epubHREF': widget.book.epubHREF,
+      'categoryName': widget.categoryName,
+    };
+    if (_isFavorite) {
+      await AuthService().removeFavorite(bookId);
+      if (mounted) {
+        setState(() => _isFavorite = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Removed from favorites')));
+      }
+    } else {
+      await AuthService().addFavorite(bookData);
+      if (mounted) {
+        setState(() => _isFavorite = true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to favorites')));
+      }
     }
   }
 
@@ -189,8 +229,8 @@ class _BookDetailPageState extends State<BookDetailPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: IconButton(
-              icon: const Icon(Icons.favorite_border),
-              onPressed: _onFavorite,
+              icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : null),
+              onPressed: _toggleFavorite,
             ),
           ),
         ],
