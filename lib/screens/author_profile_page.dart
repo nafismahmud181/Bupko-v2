@@ -3,17 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/book.dart';
 import '../book_detail_page.dart';
+import '../services/auth_service.dart';
 
-class AuthorProfilePage extends StatelessWidget {
+class AuthorProfilePage extends StatefulWidget {
   final String authorName;
   const AuthorProfilePage({super.key, required this.authorName});
+
+  @override
+  State<AuthorProfilePage> createState() => _AuthorProfilePageState();
+}
+
+class _AuthorProfilePageState extends State<AuthorProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   Future<List<Map<String, dynamic>>> _fetchBooksByAuthor() async {
     final categories = await FirebaseFirestore.instance.collection('categories').get();
     List<Map<String, dynamic>> booksWithCategory = [];
     for (var category in categories.docs) {
       final booksSnapshot = await category.reference.collection('books')
-          .where('author', isEqualTo: authorName)
+          .where('author', isEqualTo: widget.authorName)
           .get();
       for (var doc in booksSnapshot.docs) {
         final data = doc.data();
@@ -83,7 +94,7 @@ class AuthorProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      authorName,
+                      widget.authorName,
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                     ),
                     const SizedBox(height: 6),
@@ -92,111 +103,179 @@ class AuthorProfilePage extends StatelessWidget {
                       style: TextStyle(color: Colors.grey, fontSize: 15),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: 120,
-                      height: 38,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4AD0A0),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: const Text('FOLLOW', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                      ),
-                    ),
+                    _FollowSection(authorName: widget.authorName, booksCount: books.length),
                     const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _StatCard(icon: Icons.menu_book, label: 'Books, Podcast', value: '${books.length}+',),
-                        _StatCard(icon: Icons.star, label: 'Rating & reviews', value: '4.5k+',),
-                        _StatCard(icon: Icons.people, label: 'Followers', value: '10k+',),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.55,
+                        ),
+                        itemCount: books.length,
+                        itemBuilder: (context, index) {
+                          final bookMap = books[index];
+                          final book = Book.fromJson(bookMap);
+                          final categoryName = bookMap['categoryName'] ?? '';
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookDetailPage(
+                                    book: book,
+                                    categoryName: categoryName,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: CachedNetworkImage(
+                                    imageUrl: book.imageSRC,
+                                    width: double.infinity,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      width: double.infinity,
+                                      height: 120,
+                                      color: Colors.grey[300],
+                                      child: const Center(child: CircularProgressIndicator()),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      width: double.infinity,
+                                      height: 120,
+                                      color: Colors.grey[300],
+                                      child: const Icon(Icons.book, size: 40),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  book.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  categoryName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.55,
-                  ),
-                  itemCount: books.length,
-                  itemBuilder: (context, index) {
-                    final bookMap = books[index];
-                    final book = Book.fromJson(bookMap);
-                    final categoryName = bookMap['categoryName'] ?? '';
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BookDetailPage(
-                              book: book,
-                              categoryName: categoryName,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: CachedNetworkImage(
-                              imageUrl: book.imageSRC,
-                              width: double.infinity,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                width: double.infinity,
-                                height: 120,
-                                color: Colors.grey[300],
-                                child: const Center(child: CircularProgressIndicator()),
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                width: double.infinity,
-                                height: 120,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.book, size: 40),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            book.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            categoryName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _FollowSection extends StatefulWidget {
+  final String authorName;
+  final int booksCount;
+  const _FollowSection({required this.authorName, required this.booksCount});
+
+  @override
+  State<_FollowSection> createState() => _FollowSectionState();
+}
+
+class _FollowSectionState extends State<_FollowSection> {
+  bool _isFollowing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFollowing();
+  }
+
+  Future<void> _checkFollowing() async {
+    final isFollowing = await AuthService().isFollowingAuthor(widget.authorName);
+    if (mounted) {
+      setState(() {
+        _isFollowing = isFollowing;
+      });
+    }
+  }
+
+  Future<void> _toggleFollow() async {
+    final user = AuthService().currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to follow authors.')));
+      return;
+    }
+    if (_isFollowing) {
+      await AuthService().unfollowAuthor(widget.authorName);
+      if (mounted) {
+        setState(() => _isFollowing = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Unfollowed author')));
+      }
+    } else {
+      await AuthService().followAuthor(widget.authorName);
+      if (mounted) {
+        setState(() => _isFollowing = true);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Followed author')));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          width: 120,
+          height: 38,
+          child: ElevatedButton(
+            onPressed: _toggleFollow,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isFollowing ? Colors.grey : const Color(0xFF4AD0A0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              _isFollowing ? 'FOLLOWING' : 'FOLLOW',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _StatCard(icon: Icons.menu_book, label: 'Books, Podcast', value: '${widget.booksCount}+',),
+            _StatCard(icon: Icons.star, label: 'Rating & reviews', value: '4.5k+',),
+            StreamBuilder<int>(
+              stream: AuthService().getFollowersCountStream(widget.authorName),
+              builder: (context, snap) {
+                final followers = snap.data ?? 0;
+                return _StatCard(icon: Icons.people, label: 'Followers', value: '${followers}+',);
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

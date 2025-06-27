@@ -59,4 +59,49 @@ class AuthService {
       (snapshot) => snapshot.docs.map((doc) => doc.id).toList(),
     );
   }
+
+  // --- FOLLOW AUTHOR LOGIC ---
+  Future<void> followAuthor(String authorId) async {
+    final user = currentUser;
+    if (user == null) return;
+    final userFollowRef = _firestore.collection('users').doc(user.uid).collection('followed_authors').doc(authorId);
+    final authorRef = _firestore.collection('authors').doc(authorId);
+    await _firestore.runTransaction((transaction) async {
+      // READ FIRST
+      final authorSnap = await transaction.get(authorRef);
+      // THEN WRITE
+      transaction.set(userFollowRef, {'followedAt': FieldValue.serverTimestamp()});
+      final currentCount = (authorSnap.data()?['followersCount'] ?? 0) as int;
+      transaction.set(authorRef, {'followersCount': currentCount + 1}, SetOptions(merge: true));
+    });
+  }
+
+  Future<void> unfollowAuthor(String authorId) async {
+    final user = currentUser;
+    if (user == null) return;
+    final userFollowRef = _firestore.collection('users').doc(user.uid).collection('followed_authors').doc(authorId);
+    final authorRef = _firestore.collection('authors').doc(authorId);
+    await _firestore.runTransaction((transaction) async {
+      // READ FIRST
+      final authorSnap = await transaction.get(authorRef);
+      // THEN WRITE
+      transaction.delete(userFollowRef);
+      final currentCount = (authorSnap.data()?['followersCount'] ?? 1) as int;
+      final newCount = (currentCount > 0) ? currentCount - 1 : 0;
+      transaction.set(authorRef, {'followersCount': newCount}, SetOptions(merge: true));
+    });
+  }
+
+  Future<bool> isFollowingAuthor(String authorId) async {
+    final user = currentUser;
+    if (user == null) return false;
+    final userFollowRef = _firestore.collection('users').doc(user.uid).collection('followed_authors').doc(authorId);
+    final doc = await userFollowRef.get();
+    return doc.exists;
+  }
+
+  Stream<int> getFollowersCountStream(String authorId) {
+    final authorRef = _firestore.collection('authors').doc(authorId);
+    return authorRef.snapshots().map((snap) => (snap.data()?['followersCount'] ?? 0) as int);
+  }
 } 
