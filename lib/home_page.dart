@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   // Main scrollable content
                   Padding(
-                    padding: const EdgeInsets.only(top: 110), // Height of header
+                    padding: const EdgeInsets.only(top: 130), // Height of header
                     child: RefreshIndicator(
                       onRefresh: () async {
                         await _fetchBooksFromFirestore();
@@ -507,12 +507,15 @@ class _HomeHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                'What book would you like to read?',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[500], // AppColors.secondaryText
-                  fontWeight: FontWeight.w400,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Text(
+                  'What book would you like to read?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[500], // AppColors.secondaryText
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
               const SizedBox(height: 66),

@@ -27,7 +27,15 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Categories')),
+      appBar: AppBar(
+        title: const Text('Explore by Genre'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _loadCategories,
         child: FutureBuilder<QuerySnapshot>(
@@ -48,7 +56,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.1,
+                  childAspectRatio: 1.2,
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
@@ -70,55 +78,74 @@ class _CategoryPageState extends State<CategoryPage> {
                         ),
                       );
                     },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: imageUrl.isNotEmpty
-                                ? Image.network(
-                                    imageUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                        Container(
-                                          color: Colors.grey[800],
-                                          child: const Icon(Icons.broken_image, size: 60, color: Colors.white),
-                                        ),
-                                  )
-                                : Container(
-                                    color: Colors.grey[800],
-                                    child: const Icon(Icons.category, size: 60, color: Colors.white),
-                                  ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
-                          // Overlay for category name
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                              color: Colors.black.withValues(alpha: 0.55),
-                              child: Center(
-                                child: Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    shadows: [
-                                      Shadow(
-                                        blurRadius: 4,
-                                        color: Colors.black54,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: imageUrl.isNotEmpty
+                                  ? Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          Container(
+                                            color: Colors.grey[800],
+                                            child: const Icon(Icons.broken_image, size: 60, color: Colors.white),
+                                          ),
+                                    )
+                                  : Container(
+                                      color: Colors.grey[800],
+                                      child: const Icon(Icons.category, size: 60, color: Colors.white),
+                                    ),
+                            ),
+                            // Overlay for category name
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.35),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(18),
+                                    bottomRight: Radius.circular(18),
                                   ),
-                                  textAlign: TextAlign.center,
+                                ),
+                                child: Align(
+                                  alignment: Alignment.bottomLeft,
+                                  child: Text(
+                                    categoryName,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 4,
+                                          color: Colors.black54,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
