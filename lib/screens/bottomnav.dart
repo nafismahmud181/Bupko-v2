@@ -90,8 +90,8 @@ class _BottomNavState extends State<BottomNav> {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.library_books),
-                    activeIcon: Icon(Icons.library_books),
+                    icon: Icon(Icons.bookmark_border),
+                    activeIcon: Icon(Icons.bookmark),
                     label: 'Library',
                   ),
                   BottomNavigationBarItem(
