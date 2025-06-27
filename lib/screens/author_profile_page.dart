@@ -27,7 +27,6 @@ class AuthorProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(authorName)),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchBooksByAuthor(),
         builder: (context, snapshot) {
@@ -38,52 +37,201 @@ class AuthorProfilePage extends StatelessWidget {
             return const Center(child: Text('No books found for this author.'));
           }
           final books = snapshot.data!;
-          return ListView.separated(
-            itemCount: books.length,
-            separatorBuilder: (context, index) => const Divider(),
-            itemBuilder: (context, index) {
-              final bookMap = books[index];
-              final book = Book.fromJson(bookMap);
-              final categoryName = bookMap['categoryName'] ?? '';
-              return ListTile(
-                leading: book.imageSRC.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: book.imageSRC,
-                        width: 50,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => const SizedBox(
-                          width: 50,
-                          height: 70,
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        errorWidget: (context, url, error) => const Icon(Icons.book),
-                      )
-                    : const Icon(Icons.book, size: 50),
-                title: Text(
-                  book.title,
-                  style: const TextStyle(
-                    color: Color(0xFF1D1D1F),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+          return ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              // Custom header
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                subtitle: Text(categoryName),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BookDetailPage(
-                        book: book,
-                        categoryName: categoryName,
+                padding: const EdgeInsets.fromLTRB(24, 36, 24, 24),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        const Text(
+                          'Author Details',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.more_horiz),
+                          onPressed: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage: NetworkImage('https://randomuser.me/api/portraits/men/32.jpg'), // Placeholder
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      authorName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'United States, America', // Placeholder
+                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: 120,
+                      height: 38,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4AD0A0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: const Text('FOLLOW', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
                     ),
-                  );
-                },
-              );
-            },
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _StatCard(icon: Icons.menu_book, label: 'Books, Podcast', value: '${books.length}+',),
+                        _StatCard(icon: Icons.star, label: 'Rating & reviews', value: '4.5k+',),
+                        _StatCard(icon: Icons.people, label: 'Followers', value: '10k+',),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.55,
+                  ),
+                  itemCount: books.length,
+                  itemBuilder: (context, index) {
+                    final bookMap = books[index];
+                    final book = Book.fromJson(bookMap);
+                    final categoryName = bookMap['categoryName'] ?? '';
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookDetailPage(
+                              book: book,
+                              categoryName: categoryName,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              imageUrl: book.imageSRC,
+                              width: double.infinity,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                width: double.infinity,
+                                height: 120,
+                                color: Colors.grey[300],
+                                child: const Center(child: CircularProgressIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                width: double.infinity,
+                                height: 120,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.book, size: 40),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            book.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            categoryName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _StatCard({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.grey[700], size: 28),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
+        ],
       ),
     );
   }
