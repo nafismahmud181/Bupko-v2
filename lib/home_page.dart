@@ -9,6 +9,7 @@ import 'category_books_page.dart';
 
 import 'models/book.dart';
 import 'app_colors.dart';
+import 'dart:math';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +22,9 @@ class _HomePageState extends State<HomePage> {
   List<BookCategory> _bookCategories = [];
   String _selectedCategory = '';
   bool _loading = true;
+  Book? _bookOfTheDay;
+  String? _bookOfTheDayCategory;
+  DateTime? _lastBookOfTheDayDate;
 
   @override
   void initState() {
@@ -51,6 +55,33 @@ class _HomePageState extends State<HomePage> {
         _selectedCategory = _bookCategories.first.categoryName;
       }
       _loading = false;
+    });
+    _pickBookOfTheDay();
+  }
+
+  void _pickBookOfTheDay() async {
+    // Only pick a new book if it's a new day or not set
+    final now = DateTime.now();
+    if (_bookOfTheDay != null && _lastBookOfTheDayDate != null &&
+        now.difference(_lastBookOfTheDayDate!).inHours < 24) {
+      return;
+    }
+    // Wait for books to be loaded
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (_bookCategories.isEmpty) return;
+    final allBooks = <Map<String, dynamic>>[];
+    for (final cat in _bookCategories) {
+      for (final book in cat.books) {
+        allBooks.add({'book': book, 'category': cat.categoryName});
+      }
+    }
+    if (allBooks.isEmpty) return;
+    final random = Random(now.year + now.month + now.day); // Seed for 24h repeat
+    final picked = allBooks[random.nextInt(allBooks.length)];
+    setState(() {
+      _bookOfTheDay = picked['book'] as Book;
+      _bookOfTheDayCategory = picked['category'] as String;
+      _lastBookOfTheDayDate = now;
     });
   }
 
@@ -183,7 +214,9 @@ class _HomePageState extends State<HomePage> {
         body: _bookCategories.isEmpty
             ? const Center(child: Text('No books found.'))
             : RefreshIndicator(
-                onRefresh: _fetchBooksFromFirestore,
+                onRefresh: () async {
+                  await _fetchBooksFromFirestore();
+                },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   child: Column(
@@ -193,6 +226,14 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                         child: _HomeHeader(name: name),
                       ),
+                      if (_bookOfTheDay != null && _bookOfTheDayCategory != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          child: _BookOfTheDayCard(
+                            book: _bookOfTheDay!,
+                            category: _bookOfTheDayCategory!,
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -574,6 +615,124 @@ class _HomeHeader extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _BookOfTheDayCard extends StatelessWidget {
+  final Book book;
+  final String category;
+  const _BookOfTheDayCard({required this.book, required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BookDetailPage(book: book, categoryName: category),
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 90,
+                  height: 120,
+                  child: book.imageSRC.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: book.imageSRC,
+                          width: 90,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: 90,
+                            height: 120,
+                            color: Colors.grey[300],
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: 90,
+                            height: 120,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.book, size: 40),
+                          ),
+                        )
+                      : Container(
+                          width: 90,
+                          height: 120,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.book, size: 40),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Book of the Day',
+                        style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        )),
+                    const SizedBox(height: 8),
+                    Text(
+                      book.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      book.author,
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        category,
+                        style: const TextStyle(
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
