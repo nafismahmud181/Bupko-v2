@@ -58,14 +58,22 @@ class App extends StatelessWidget {
               ),
               outlinedButtonTheme: OutlinedButtonThemeData(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.primary),
+                  backgroundColor: AppColors.primaryButton,
+                  foregroundColor: AppColors.white,
+                  side: const BorderSide(color: AppColors.primaryButton),
                   shape: const StadiumBorder(),
                 ),
               ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: AppColors.primaryButton,
+                  foregroundColor: AppColors.white,
+                  shape: const StadiumBorder(),
+                ),
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.primaryButton,
                   foregroundColor: AppColors.white,
                   shape: const StadiumBorder(),
                 ),

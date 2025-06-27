@@ -29,4 +29,7 @@ class AppColors {
 
   /// Notification Red: #FF3B30
   static const Color notification = Color(0xFFFF3B30);
+
+  /// Primary Button (Light Mode): #805CF5
+  static const Color primaryButton = Color(0xFF805CF5);
 } 
