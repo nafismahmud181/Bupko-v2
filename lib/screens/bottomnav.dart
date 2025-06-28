@@ -3,6 +3,7 @@ import 'package:bupko_v2/profile_page.dart';
 import 'package:bupko_v2/screens/library_page.dart';
 import 'package:bupko_v2/search_page.dart';
 import 'package:flutter/material.dart';
+import 'package:bupko_v2/category_page.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -16,8 +17,9 @@ class _BottomNavState extends State<BottomNav> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const LibraryPage(),
+    const CategoryPage(),
     const SearchPage(),
+    const LibraryPage(),
     const ProfilePage(),
   ];
 
@@ -90,14 +92,19 @@ class _BottomNavState extends State<BottomNav> {
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.bookmark_border),
-                    activeIcon: Icon(Icons.bookmark),
-                    label: 'Library',
+                    icon: Icon(Icons.category_outlined),
+                    activeIcon: Icon(Icons.category),
+                    label: 'Category',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.search_outlined),
                     activeIcon: Icon(Icons.search),
                     label: 'Search',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.bookmark_border),
+                    activeIcon: Icon(Icons.bookmark),
+                    label: 'Library',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.person_outline),

@@ -56,7 +56,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
+                  childAspectRatio: 2,
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
@@ -84,8 +84,8 @@ class _CategoryPageState extends State<CategoryPage> {
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
@@ -109,6 +109,15 @@ class _CategoryPageState extends State<CategoryPage> {
                                       child: const Icon(Icons.category, size: 60, color: Colors.white),
                                     ),
                             ),
+                            // Black overlay card in front of image but behind text
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                            ),
                             // Overlay for category name
                             Positioned(
                               left: 0,
@@ -117,7 +126,7 @@ class _CategoryPageState extends State<CategoryPage> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.35),
+                                  color: Colors.transparent,
                                   borderRadius: const BorderRadius.only(
                                     bottomLeft: Radius.circular(18),
                                     bottomRight: Radius.circular(18),
