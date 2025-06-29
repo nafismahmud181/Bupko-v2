@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'category_page.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'services/auth_service.dart';
 import 'category_books_page.dart';
@@ -10,6 +11,8 @@ import 'category_books_page.dart';
 import 'models/book.dart';
 import 'app_colors.dart';
 import 'dart:math';
+import 'affiliate_book_card.dart';
+import 'models/affiliate_book.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -83,6 +86,17 @@ class _HomePageState extends State<HomePage> {
       _bookOfTheDayCategory = picked['category'] as String;
       _lastBookOfTheDayDate = now;
     });
+  }
+
+  Future<List<AffiliateBook>> fetchAffiliateBooks() async {
+    final secondaryDb = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'rokomari-aff',
+    );
+    final snapshot = await secondaryDb.collection('books-aff').get();
+    return snapshot.docs
+        .map((doc) => AffiliateBook.fromFirestore(doc.id, doc.data()))
+        .toList();
   }
 
   @override
@@ -167,6 +181,56 @@ class _HomePageState extends State<HomePage> {
                                   category: _bookOfTheDayCategory!,
                                 ),
                               ),
+                            // --- Affiliate Books Grid ---
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Affiliate Books',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  FutureBuilder<List<AffiliateBook>>(
+                                    future: fetchAffiliateBooks(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Center(child: CircularProgressIndicator());
+                                      }
+                                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                        return const Center(child: Text('No affiliate books found.'));
+                                      }
+                                      final books = snapshot.data!;
+                                      return GridView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 3,
+                                          crossAxisSpacing: 8,
+                                          mainAxisSpacing: 8,
+                                          childAspectRatio: 0.6,
+                                        ),
+                                        itemCount: books.length,
+                                        itemBuilder: (context, index) {
+                                          final book = books[index];
+                                          return AffiliateBookCard(
+                                            book: book,
+                                            onTap: () {
+                                              // Optionally open affLink in browser
+                                            },
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // --- End Affiliate Books Grid ---
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
