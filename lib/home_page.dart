@@ -94,9 +94,27 @@ class _HomePageState extends State<HomePage> {
       databaseId: 'rokomari-aff',
     );
     final snapshot = await secondaryDb.collection('books-aff').get();
-    return snapshot.docs
+    final books = snapshot.docs
         .map((doc) => AffiliateBook.fromFirestore(doc.id, doc.data()))
         .toList();
+    
+    // Debug: Print the first few affiliate books to see their data
+    print('=== AFFILIATE BOOKS DEBUG ===');
+    print('Total affiliate books found: ${books.length}');
+    for (int i = 0; i < books.length && i < 3; i++) {
+      final book = books[i];
+      print('Book $i:');
+      print('  Title: ${book.title}');
+      print('  Author: ${book.author}');
+      print('  affLink: "${book.affLink}"');
+      print('  affLink length: ${book.affLink.length}');
+      print('  imageUrl: ${book.imageUrl}');
+      print('  actualPrice: ${book.actualPrice}');
+      print('  discPrice: ${book.discPrice}');
+    }
+    print('=== END AFFILIATE BOOKS DEBUG ===');
+    
+    return books;
   }
 
   @override
@@ -205,25 +223,21 @@ class _HomePageState extends State<HomePage> {
                                         return const Center(child: Text('No affiliate books found.'));
                                       }
                                       final books = snapshot.data!;
-                                      return GridView.builder(
-                                        shrinkWrap: true,
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 3,
-                                          crossAxisSpacing: 8,
-                                          mainAxisSpacing: 8,
-                                          childAspectRatio: 0.6,
+                                      return SizedBox(
+                                        height: 300,
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: books.length,
+                                          itemBuilder: (context, index) {
+                                            final book = books[index];
+                                            return Padding(
+                                              padding: const EdgeInsets.only(right: 16.0),
+                                              child: AffiliateBookCard(
+                                                book: book,
+                                              ),
+                                            );
+                                          },
                                         ),
-                                        itemCount: books.length,
-                                        itemBuilder: (context, index) {
-                                          final book = books[index];
-                                          return AffiliateBookCard(
-                                            book: book,
-                                            onTap: () {
-                                              // Optionally open affLink in browser
-                                            },
-                                          );
-                                        },
                                       );
                                     },
                                   ),
