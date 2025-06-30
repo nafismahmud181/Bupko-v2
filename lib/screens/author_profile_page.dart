@@ -270,7 +270,7 @@ class _FollowSectionState extends State<_FollowSection> {
               stream: AuthService().getFollowersCountStream(widget.authorName),
               builder: (context, snap) {
                 final followers = snap.data ?? 0;
-                return _StatCard(icon: Icons.people, label: 'Followers', value: '${followers}+',);
+                return _StatCard(icon: Icons.people, label: 'Followers', value: '$followers+',);
               },
             ),
           ],

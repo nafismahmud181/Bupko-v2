@@ -6,6 +6,7 @@ import 'package:bupko_v2/services/auth_service.dart';
 import 'package:bupko_v2/services/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../upload_research_book.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -34,6 +35,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 themeProvider.setDarkTheme(value);
               },
             ),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.book),
+            title: const Text('Write Thesis/Report'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UploadResearchBookPage(),
+                ),
+              );
+            },
           ),
           const Divider(),
           if (user != null)
