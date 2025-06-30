@@ -1,7 +1,7 @@
 import 'package:bupko_v2/home_page.dart';
 import 'package:bupko_v2/profile_page.dart';
 import 'package:bupko_v2/screens/library_page.dart';
-import 'package:bupko_v2/search_page.dart';
+// import 'package:bupko_v2/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:bupko_v2/category_page.dart';
 
@@ -18,7 +18,7 @@ class _BottomNavState extends State<BottomNav> {
   final List<Widget> _pages = [
     const HomePage(),
     const CategoryPage(),
-    const SearchPage(),
+    // const SearchPage(),
     const LibraryPage(),
     const ProfilePage(),
   ];
@@ -96,11 +96,11 @@ class _BottomNavState extends State<BottomNav> {
                     activeIcon: Icon(Icons.category),
                     label: 'Category',
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.search_outlined),
-                    activeIcon: Icon(Icons.search),
-                    label: 'Search',
-                  ),
+                  // BottomNavigationBarItem(
+                  //   icon: Icon(Icons.search_outlined),
+                  //   activeIcon: Icon(Icons.search),
+                  //   label: 'Search',
+                  // ),
                   BottomNavigationBarItem(
                     icon: Icon(Icons.bookmark_border),
                     activeIcon: Icon(Icons.bookmark),
@@ -113,7 +113,7 @@ class _BottomNavState extends State<BottomNav> {
                   ),
                 ],
                 currentIndex: _selectedIndex,
-                selectedItemColor: const Color.fromARGB(255, 51, 75, 235),
+                selectedItemColor: Colors.black,
                 unselectedItemColor: Colors.grey,
                 onTap: _onItemTapped,
                 backgroundColor: Colors.transparent,
