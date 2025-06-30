@@ -1,9 +1,11 @@
+import 'package:bupko_v2/book_detail_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../screens/epub_reader_screen.dart';
 import '../services/epub_downloader.dart';
+import 'package:bupko_v2/models/book.dart';
 
 class LibraryPage extends StatelessWidget {
   const LibraryPage({super.key});
@@ -17,21 +19,109 @@ class LibraryPage extends StatelessWidget {
         if (user == null) {
           return const Center(child: Text('Please log in to view your library.'));
         }
-        return _LibraryContent(uid: user.uid);
+        return _LibraryTabView(uid: user.uid);
       },
     );
   }
 }
 
-class _LibraryContent extends StatefulWidget {
+class _LibraryTabView extends StatelessWidget {
   final String uid;
-  const _LibraryContent({required this.uid});
+  const _LibraryTabView({required this.uid});
 
   @override
-  State<_LibraryContent> createState() => _LibraryContentState();
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('My Library'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'My Books'),
+              Tab(text: 'Favorites'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _MyBooksList(uid: uid),
+            _FavoritesList(uid: uid),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _LibraryContentState extends State<_LibraryContent> {
+class _FavoritesList extends StatelessWidget {
+  final String uid;
+  const _FavoritesList({required this.uid});
+
+  @override
+  Widget build(BuildContext context) {
+    final favoritesStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('favorites')
+        .snapshots();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: favoritesStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('You have no favorite books yet.'));
+        }
+
+        final books = snapshot.data!.docs;
+
+        return ListView.separated(
+          itemCount: books.length,
+          separatorBuilder: (context, i) => const Divider(),
+          itemBuilder: (context, i) {
+            final book = Book.fromJson(books[i].data() as Map<String, dynamic>);
+            final categoryName = books[i].reference.parent.parent?.id ?? '';
+            
+            return ListTile(
+              leading: book.imageSRC.isNotEmpty
+                  ? Image.network(book.imageSRC, width: 50, height: 70, fit: BoxFit.cover)
+                  : const Icon(Icons.book, size: 50),
+              title: Text(
+                book.title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(book.author),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookDetailPage(
+                      book: book,
+                      categoryName: categoryName,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _MyBooksList extends StatefulWidget {
+  final String uid;
+  const _MyBooksList({required this.uid});
+
+  @override
+  State<_MyBooksList> createState() => _MyBooksListState();
+}
+
+class _MyBooksListState extends State<_MyBooksList> {
   final Map<String, double> _downloadProgress = {};
   Stream<QuerySnapshot>? _libraryStream;
 
@@ -133,7 +223,7 @@ class _LibraryContentState extends State<_LibraryContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Library')),
+      // appBar: AppBar(title: const Text('My Library')),
       body: RefreshIndicator(
         onRefresh: _refreshLibrary,
         child: StreamBuilder<QuerySnapshot>(

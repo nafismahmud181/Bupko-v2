@@ -49,7 +49,7 @@ class _CategoryBooksPageState extends State<CategoryBooksPage> {
   Future<void> _fetchBooks() async {
     setState(() => _loading = true);
     final snapshot = await widget.categoryRef.collection('books').get();
-    final books = snapshot.docs.map((doc) => Book.fromJson(doc.data() as Map<String, dynamic>)).toList();
+    final books = snapshot.docs.map((doc) => Book.fromJson(doc.data())).toList();
     setState(() {
       _books = books;
       _loading = false;
