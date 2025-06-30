@@ -91,17 +91,7 @@ class SectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      leading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ReorderableDragStartListener(
-            index: sectionIndex,
-            child: const Icon(Icons.drag_handle),
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.article_outlined),
-        ],
-      ),
+      leading: const Icon(Icons.article_outlined),
       title: Row(
         children: [
           Expanded(child: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}')),
