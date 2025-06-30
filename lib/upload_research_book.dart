@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 class Section {
   final String id;
   final String title;
+  String? content; // New nullable field for section text
   // In the real app, this will hold rich text content
-  Section({required this.id, required this.title});
+  Section({required this.id, required this.title, this.content});
 }
 
 class Chapter {
@@ -69,7 +70,7 @@ class UploadResearchBookPage extends StatefulWidget {
   State<UploadResearchBookPage> createState() => _UploadResearchBookPageState();
 }
 
-// SectionTile: Displays a single section with edit/delete actions
+// SectionTile: Displays a single section with edit/delete actions and content
 class SectionTile extends StatelessWidget {
   final int chapterIndex;
   final int sectionIndex;
@@ -88,24 +89,36 @@ class SectionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return ExpansionTile(
       leading: const Icon(Icons.article_outlined),
-      title: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      title: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.blue),
-            onPressed: onEdit,
-            tooltip: 'Edit',
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: onDelete,
-            tooltip: 'Delete',
+          Expanded(child: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}')),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                onPressed: onEdit,
+                tooltip: 'Edit',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+                tooltip: 'Delete',
+              ),
+            ],
           ),
         ],
       ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: section.content != null && section.content!.trim().isNotEmpty
+              ? Text(section.content!)
+              : const Text('No content. Click edit to add.', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
+        ),
+      ],
     );
   }
 }
@@ -184,6 +197,32 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
     );
   }
 
+  // Edit a section: open SectionEditorPage and update content if changed
+  Future<void> _editSection(Section section) async {
+    final newContent = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SectionEditorPage(
+          sectionTitle: section.title,
+          sectionContent: section.content,
+        ),
+      ),
+    );
+    if (newContent != null) {
+      setState(() {
+        // Find and update the section's content
+        for (final chapter in chapters) {
+          for (final s in chapter.sections) {
+            if (s.id == section.id) {
+              s.content = newContent;
+              break;
+            }
+          }
+        }
+      });
+    }
+  }
+
   // Builds the Outline tab UI
   Widget _buildOutlineTab() {
     return ListView(
@@ -204,7 +243,7 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
             chapterIndex: chapterIndex,
             chapter: chapter,
             onAddSection: (chapterTitle) => _showSnackBar('Add Section to $chapterTitle'),
-            onEditSection: (section) => _showSnackBar('Edit ${section.title}'),
+            onEditSection: _editSection,
             onDeleteSection: (section) => _showSnackBar('Delete ${section.title}'),
           );
         }),
@@ -244,6 +283,65 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
           // Placeholder for Export tab
           const Center(child: Text('Export options (PDF, Word) will be here')),
         ],
+      ),
+    );
+  }
+}
+
+// SectionEditorPage: A simple text editor for editing section content
+class SectionEditorPage extends StatefulWidget {
+  final String sectionTitle;
+  final String? sectionContent;
+
+  const SectionEditorPage({Key? key, required this.sectionTitle, this.sectionContent}) : super(key: key);
+
+  @override
+  State<SectionEditorPage> createState() => _SectionEditorPageState();
+}
+
+class _SectionEditorPageState extends State<SectionEditorPage> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.sectionContent ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.sectionTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: 'Save',
+            onPressed: () {
+              Navigator.pop(context, _controller.text);
+            },
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: TextFormField(
+          controller: _controller,
+          maxLines: null,
+          minLines: 10,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Section Content',
+            alignLabelWithHint: true,
+          ),
+          keyboardType: TextInputType.multiline,
+        ),
       ),
     );
   }
