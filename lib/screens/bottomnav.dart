@@ -2,8 +2,10 @@ import 'package:bupko_v2/home_page.dart';
 import 'package:bupko_v2/profile_page.dart';
 import 'package:bupko_v2/screens/library_page.dart';
 // import 'package:bupko_v2/search_page.dart';
+import 'package:bupko_v2/services/bottom_nav_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bupko_v2/category_page.dart';
+import 'package:provider/provider.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,8 +15,6 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int _selectedIndex = 0;
-
   final List<Widget> _pages = [
     const HomePage(),
     const CategoryPage(),
@@ -23,20 +23,15 @@ class _BottomNavState extends State<BottomNav> {
     const ProfilePage(),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final navProvider = Provider.of<BottomNavProvider>(context);
+    final selectedIndex = navProvider.selectedIndex;
+
     return WillPopScope(
       onWillPop: () async {
-        if (_selectedIndex != 0) {
-          setState(() {
-            _selectedIndex = 0;
-          });
+        if (selectedIndex != 0) {
+          navProvider.setIndex(0);
           return false;
         } else {
           final shouldExit = await showDialog<bool>(
@@ -64,7 +59,7 @@ class _BottomNavState extends State<BottomNav> {
       },
       child: Scaffold(
         body: IndexedStack(
-          index: _selectedIndex,
+          index: selectedIndex,
           children: _pages,
         ),
         bottomNavigationBar: Container(
@@ -112,10 +107,10 @@ class _BottomNavState extends State<BottomNav> {
                     label: 'Profile',
                   ),
                 ],
-                currentIndex: _selectedIndex,
+                currentIndex: selectedIndex,
                 selectedItemColor: Colors.black,
                 unselectedItemColor: Colors.grey,
-                onTap: _onItemTapped,
+                onTap: (index) => navProvider.setIndex(index),
                 backgroundColor: Colors.transparent,
                 type: BottomNavigationBarType.fixed,
                 elevation: 0,

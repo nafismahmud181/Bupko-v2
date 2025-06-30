@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'category_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:bupko_v2/search_page.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:bupko_v2/profile_page.dart';
+import 'package:bupko_v2/services/bottom_nav_provider.dart';
+import 'package:provider/provider.dart';
 
 import 'services/auth_service.dart';
 import 'category_books_page.dart';
@@ -14,6 +18,8 @@ import 'app_colors.dart';
 import 'dart:math';
 import 'affiliate_book_card.dart';
 import 'models/affiliate_book.dart';
+import 'package:bupko_v2/screens/user_profile_page.dart';
+import 'package:bupko_v2/screens/user_details_page.dart';
 
 // Data Service for optimized data loading
 class BookDataService {
@@ -812,10 +818,22 @@ class _HomeHeader extends StatelessWidget {
             ),
             Stack(
               children: [
-                const CircleAvatar(
-                  radius: 24,
-                  // You can replace this with a real user image
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const UserDetailsPage()),
+                    );
+                  },
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: BoringAvatar(
+                      name: name ?? 'Guest',
+                      type: BoringAvatarType.beam,
+                      shape: const OvalBorder(),
+                    ),
+                  ),
                 ),
                 Positioned(
                   right: 2,

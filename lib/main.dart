@@ -9,6 +9,7 @@ import 'home_page.dart';
 // import 'package:bupko_v2/models/bottom_nav.dart';
 import 'package:bupko_v2/screens/bottomnav.dart';
 import 'package:bupko_v2/app_colors.dart';
+import 'package:bupko_v2/services/bottom_nav_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,12 +20,15 @@ void main() async {
 }
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => BottomNavProvider()),
+      ],
       child: Consumer<ThemeProvider>(
         builder: (BuildContext context, themeProvider, Widget? child) {
           return MaterialApp(
@@ -49,7 +53,6 @@ class App extends StatelessWidget {
               ),
               colorScheme: ColorScheme.light(
                 primary: AppColors.primary,
-                background: AppColors.background,
                 surface: AppColors.white,
                 onPrimary: AppColors.white,
                 onSurface: AppColors.primaryText,
