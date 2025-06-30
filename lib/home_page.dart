@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'category_page.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:bupko_v2/search_page.dart';
 
 import 'services/auth_service.dart';
 import 'category_books_page.dart';
@@ -478,13 +479,13 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   // Fixed header
                   Container(
-                    padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: _HomeHeader(name: name),
                   ),
                   // Main scrollable content
                   Padding(
-                    padding: const EdgeInsets.only(top: 130),
+                    padding: const EdgeInsets.only(top: 210),
                     child: RefreshIndicator(
                       onRefresh: _refreshData,
                       child: SingleChildScrollView(
@@ -503,28 +504,6 @@ class _HomePageState extends State<HomePage> {
                                   category: _bookOfTheDayCategory!,
                                 ),
                               ),
-                            
-                            // Affiliate Books Section
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0, 
-                                vertical: 8.0,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Affiliate Books',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildAffiliateBooks(),
-                                ],
-                              ),
-                            ),
                             
                             // Category Selection and Books
                             Padding(
@@ -613,6 +592,27 @@ class _HomePageState extends State<HomePage> {
                                   
                                   // Category grid
                                   _buildCategoryGrid(),
+
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, 
+                                      vertical: 8.0,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Affiliate Books',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildAffiliateBooks(),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -779,75 +779,82 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String? displayName = name != null && name!.isNotEmpty
-        ? name![0].toUpperCase() + name!.substring(1)
-        : null;
-    return Row(
+        ? 'Hi ${name![0].toUpperCase()}${name!.substring(1)}!'
+        : 'Hi,';
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                displayName != null ? 'Hello $displayName,' : 'Hello!',
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1D1D1F),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Text(
-                  'What book would you like to read?',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[500],
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 66),
-            ],
-          ),
-        ),
-        Stack(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            IconButton(
-              icon: const Icon(
-                Icons.shopping_cart_outlined, 
-                size: 28, 
-                color: Color(0xFF1D1D1F),
-              ),
-              onPressed: () {},
-            ),
-            Positioned(
-              right: 6,
-              top: 20,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: const Text(
-                  '2',
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.grey[600],
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Find your best book',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D1B54),
+                  ),
+                ),
+              ],
+            ),
+            Stack(
+              children: [
+                const CircleAvatar(
+                  radius: 24,
+                  // You can replace this with a real user image
+                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'),
+                ),
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          readOnly: true,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SearchPage(autofocus: true)),
+            );
+          },
+          decoration: InputDecoration(
+            hintText: 'Search book ....',
+            hintStyle: TextStyle(color: Colors.grey[500]),
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            filled: true,
+            fillColor: const Color.fromARGB(255, 255, 255, 255),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30.0),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          ),
         ),
       ],
     );

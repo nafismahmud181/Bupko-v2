@@ -5,7 +5,8 @@ import 'models/book.dart';
 import 'book_detail_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final bool autofocus;
+  const SearchPage({super.key, this.autofocus = false});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -16,6 +17,24 @@ class _SearchPageState extends State<SearchPage> {
   List<QueryDocumentSnapshot> _results = [];
   bool _loading = false;
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autofocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FocusScope.of(context).requestFocus(_focusNode);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   void _onSearchChanged(String value) async {
     setState(() {
@@ -68,6 +87,7 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _controller,
+              focusNode: _focusNode,
               decoration: InputDecoration(
                 hintText: 'Search by book title...',
                 prefixIcon: const Icon(Icons.search),

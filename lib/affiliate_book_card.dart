@@ -7,7 +7,7 @@ class AffiliateBookCard extends StatelessWidget {
   final AffiliateBook book;
   final VoidCallback? onTap;
 
-  const AffiliateBookCard({Key? key, required this.book, this.onTap}) : super(key: key);
+  const AffiliateBookCard({super.key, required this.book, this.onTap});
 
   @override
   Widget build(BuildContext context) {
