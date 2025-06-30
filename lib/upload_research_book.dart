@@ -69,6 +69,101 @@ class UploadResearchBookPage extends StatefulWidget {
   State<UploadResearchBookPage> createState() => _UploadResearchBookPageState();
 }
 
+// SectionTile: Displays a single section with edit/delete actions
+class SectionTile extends StatelessWidget {
+  final int chapterIndex;
+  final int sectionIndex;
+  final Section section;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const SectionTile({
+    Key? key,
+    required this.chapterIndex,
+    required this.sectionIndex,
+    required this.section,
+    required this.onEdit,
+    required this.onDelete,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.article_outlined),
+      title: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.blue),
+            onPressed: onEdit,
+            tooltip: 'Edit',
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: onDelete,
+            tooltip: 'Delete',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ChapterTile: Displays a chapter as an ExpansionTile with its sections and add section button
+class ChapterTile extends StatelessWidget {
+  final int chapterIndex;
+  final Chapter chapter;
+  final void Function(String chapterTitle) onAddSection;
+  final void Function(Section section) onEditSection;
+  final void Function(Section section) onDeleteSection;
+
+  const ChapterTile({
+    Key? key,
+    required this.chapterIndex,
+    required this.chapter,
+    required this.onAddSection,
+    required this.onEditSection,
+    required this.onDeleteSection,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      key: PageStorageKey(chapter.id),
+      initiallyExpanded: true,
+      title: Text(
+        'CHAPTER ${chapterIndex + 1}: ${chapter.title.toUpperCase()}',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      children: [
+        // List all sections in this chapter
+        ...chapter.sections.asMap().entries.map((sectionEntry) {
+          final sectionIndex = sectionEntry.key;
+          final section = sectionEntry.value;
+          return SectionTile(
+            chapterIndex: chapterIndex,
+            sectionIndex: sectionIndex,
+            section: section,
+            onEdit: () => onEditSection(section),
+            onDelete: () => onDeleteSection(section),
+          );
+        }),
+        // Add Section button
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Add Section'),
+            onPressed: () => onAddSection(chapter.title),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
 class _UploadResearchBookPageState extends State<UploadResearchBookPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -82,70 +177,45 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
     chapters = List<Chapter>.from(mockChapters);
   }
 
+  // Shows a SnackBar with the given message
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 
+  // Builds the Outline tab UI
   Widget _buildOutlineTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // Add Chapter button
         ElevatedButton.icon(
           icon: const Icon(Icons.add),
           label: const Text('Add Chapter'),
           onPressed: () => _showSnackBar('Add Chapter pressed'),
         ),
         const SizedBox(height: 16),
+        // List all chapters using ChapterTile
         ...chapters.asMap().entries.map((chapterEntry) {
           final chapterIndex = chapterEntry.key;
           final chapter = chapterEntry.value;
-          return ExpansionTile(
-            key: PageStorageKey(chapter.id),
-            initiallyExpanded: true,
-            title: Text(
-              'CHAPTER ${chapterIndex + 1}: ${chapter.title.toUpperCase()}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            children: [
-              ...chapter.sections.asMap().entries.map((sectionEntry) {
-                final sectionIndex = sectionEntry.key;
-                final section = sectionEntry.value;
-                return ListTile(
-                  leading: const Icon(Icons.article_outlined),
-                  title: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showSnackBar('Edit ${section.title}'),
-                        tooltip: 'Edit',
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _showSnackBar('Delete ${section.title}'),
-                        tooltip: 'Delete',
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Section'),
-                  onPressed: () => _showSnackBar('Add Section to ${chapter.title}'),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
+          return ChapterTile(
+            chapterIndex: chapterIndex,
+            chapter: chapter,
+            onAddSection: (chapterTitle) => _showSnackBar('Add Section to $chapterTitle'),
+            onEditSection: (section) => _showSnackBar('Edit ${section.title}'),
+            onDeleteSection: (section) => _showSnackBar('Delete ${section.title}'),
           );
         }),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -167,8 +237,11 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
         controller: _tabController,
         children: [
           _buildOutlineTab(),
+          // Placeholder for Figures & Tables tab
           const Center(child: Text('List of Figures and Tables will be generated here')),
+          // Placeholder for References tab
           const Center(child: Text('Bibliography/References section')),
+          // Placeholder for Export tab
           const Center(child: Text('Export options (PDF, Word) will be here')),
         ],
       ),
