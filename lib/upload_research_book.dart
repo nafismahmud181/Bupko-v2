@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 // Data Models
 class Section {
@@ -90,7 +91,17 @@ class SectionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      leading: const Icon(Icons.article_outlined),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReorderableDragStartListener(
+            index: sectionIndex,
+            child: const Icon(Icons.drag_handle),
+          ),
+          const SizedBox(width: 8),
+          const Icon(Icons.article_outlined),
+        ],
+      ),
       title: Row(
         children: [
           Expanded(child: Text('${chapterIndex + 1}.${sectionIndex + 1} ${section.title}')),
@@ -130,6 +141,7 @@ class ChapterTile extends StatelessWidget {
   final void Function(String chapterId) onAddSection;
   final void Function(Section section) onEditSection;
   final void Function(Section section) onDeleteSection;
+  final void Function(int oldIndex, int newIndex) onReorderSection;
 
   const ChapterTile({
     Key? key,
@@ -138,30 +150,44 @@ class ChapterTile extends StatelessWidget {
     required this.onAddSection,
     required this.onEditSection,
     required this.onDeleteSection,
+    required this.onReorderSection,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
       key: PageStorageKey(chapter.id),
+      leading: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReorderableDragStartListener(
+            index: chapterIndex,
+            child: const Icon(Icons.drag_handle),
+          ),
+          const SizedBox(width: 8),
+          // Optionally, add a chapter icon here
+        ],
+      ),
       initiallyExpanded: true,
       title: Text(
         'CHAPTER ${chapterIndex + 1}: ${chapter.title.toUpperCase()}',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       children: [
-        // List all sections in this chapter
-        ...chapter.sections.asMap().entries.map((sectionEntry) {
-          final sectionIndex = sectionEntry.key;
-          final section = sectionEntry.value;
-          return SectionTile(
-            chapterIndex: chapterIndex,
-            sectionIndex: sectionIndex,
-            section: section,
-            onEdit: () => onEditSection(section),
-            onDelete: () => onDeleteSection(section),
-          );
-        }),
+        // List of sections (no drag-and-drop for stability)
+        Column(
+          children: [
+            for (int sectionIndex = 0; sectionIndex < chapter.sections.length; sectionIndex++)
+              SectionTile(
+                key: ValueKey(chapter.sections[sectionIndex].id),
+                chapterIndex: chapterIndex,
+                sectionIndex: sectionIndex,
+                section: chapter.sections[sectionIndex],
+                onEdit: () => onEditSection(chapter.sections[sectionIndex]),
+                onDelete: () => onDeleteSection(chapter.sections[sectionIndex]),
+              ),
+          ],
+        ),
         // Add Section button
         Align(
           alignment: Alignment.centerLeft,
@@ -292,30 +318,61 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
     }
   }
 
+  // Reorder sections within a chapter
+  void _reorderSection(String chapterId, int oldIndex, int newIndex) {
+    setState(() {
+      final chapter = chapters.firstWhere((c) => c.id == chapterId, orElse: () => throw Exception('Chapter not found'));
+      if (newIndex > oldIndex) newIndex -= 1;
+      final section = chapter.sections.removeAt(oldIndex);
+      chapter.sections.insert(newIndex, section);
+    });
+  }
+
   // Builds the Outline tab UI
   Widget _buildOutlineTab() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Column(
       children: [
         // Add Chapter button
-        ElevatedButton.icon(
-          icon: const Icon(Icons.add),
-          label: const Text('Add Chapter'),
-          onPressed: _addChapter,
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Add Chapter'),
+            onPressed: _addChapter,
+          ),
         ),
-        const SizedBox(height: 16),
-        // List all chapters using ChapterTile
-        ...chapters.asMap().entries.map((chapterEntry) {
-          final chapterIndex = chapterEntry.key;
-          final chapter = chapterEntry.value;
-          return ChapterTile(
-            chapterIndex: chapterIndex,
-            chapter: chapter,
-            onAddSection: _addSection,
-            onEditSection: _editSection,
-            onDeleteSection: (section) => _showSnackBar('Delete ${section.title}'),
-          );
-        }),
+        // Reorderable list of chapters
+        Expanded(
+          child: ReorderableListView.builder(
+            itemCount: chapters.length,
+            onReorder: (oldIndex, newIndex) {
+              setState(() {
+                if (newIndex > oldIndex) newIndex -= 1;
+                final chapter = chapters.removeAt(oldIndex);
+                chapters.insert(newIndex, chapter);
+              });
+            },
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            proxyDecorator: (Widget child, int index, Animation<double> animation) {
+              return Material(
+                elevation: 8.0,
+                child: child,
+              );
+            },
+            itemBuilder: (context, chapterIndex) {
+              final chapter = chapters[chapterIndex];
+              return ChapterTile(
+                key: ValueKey(chapter.id),
+                chapterIndex: chapterIndex,
+                chapter: chapter,
+                onAddSection: _addSection,
+                onEditSection: _editSection,
+                onDeleteSection: (section) => _showSnackBar('Delete ${section.title}'),
+                onReorderSection: (oldIndex, newIndex) => _reorderSection(chapter.id, oldIndex, newIndex),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -370,15 +427,28 @@ class SectionEditorPage extends StatefulWidget {
 
 class _SectionEditorPageState extends State<SectionEditorPage> {
   late TextEditingController _controller;
+  bool _canSave = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.sectionContent ?? '');
+    _canSave = _controller.text.trim().isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    final canSave = _controller.text.trim().isNotEmpty;
+    if (canSave != _canSave) {
+      setState(() {
+        _canSave = canSave;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     super.dispose();
   }
@@ -392,9 +462,9 @@ class _SectionEditorPageState extends State<SectionEditorPage> {
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save',
-            onPressed: () {
+            onPressed: _canSave ? () {
               Navigator.pop(context, _controller.text);
-            },
+            } : null,
           ),
         ],
       ),
