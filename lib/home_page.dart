@@ -825,7 +825,7 @@ class _HomeHeader extends StatelessWidget {
             ),
             Positioned(
               right: 6,
-              top: 6,
+              top: 20,
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(

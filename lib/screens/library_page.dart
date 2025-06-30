@@ -5,45 +5,55 @@ import 'dart:io';
 import '../screens/epub_reader_screen.dart';
 import '../services/epub_downloader.dart';
 
-class LibraryPage extends StatefulWidget {
+class LibraryPage extends StatelessWidget {
   const LibraryPage({super.key});
 
   @override
-  State<LibraryPage> createState() => _LibraryPageState();
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (user == null) {
+          return const Center(child: Text('Please log in to view your library.'));
+        }
+        return _LibraryContent(uid: user.uid);
+      },
+    );
+  }
 }
 
-class _LibraryPageState extends State<LibraryPage> {
-  late final String? _uid;
+class _LibraryContent extends StatefulWidget {
+  final String uid;
+  const _LibraryContent({required this.uid});
+
+  @override
+  State<_LibraryContent> createState() => _LibraryContentState();
+}
+
+class _LibraryContentState extends State<_LibraryContent> {
   final Map<String, double> _downloadProgress = {};
   Stream<QuerySnapshot>? _libraryStream;
 
   @override
   void initState() {
     super.initState();
-    _uid = FirebaseAuth.instance.currentUser?.uid;
     _initializeStream();
   }
 
   void _initializeStream() {
-    if (_uid != null) {
-      _libraryStream = FirebaseFirestore.instance
-          .collection('users')
-          .doc(_uid)
-          .collection('library')
-          .snapshots();
-    }
+    _libraryStream = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.uid)
+        .collection('library')
+        .snapshots();
   }
 
   Future<void> _refreshLibrary() async {
-    // Temporarily clear the stream to show refresh indicator
     setState(() {
       _libraryStream = null;
     });
-    
-    // Wait a bit to show the refresh indicator
     await Future.delayed(const Duration(milliseconds: 300));
-    
-    // Reinitialize the stream
     if (mounted) {
       setState(() {
         _initializeStream();
@@ -111,22 +121,17 @@ class _LibraryPageState extends State<LibraryPage> {
           await file.delete();
         }
       }
-      if (_uid != null) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_uid)
-            .collection('library')
-            .doc(docId)
-            .delete();
-      }
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.uid)
+          .collection('library')
+          .doc(docId)
+          .delete();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_uid == null) {
-      return const Center(child: Text('Please log in to view your library.'));
-    }
     return Scaffold(
       appBar: AppBar(title: const Text('My Library')),
       body: RefreshIndicator(
@@ -178,12 +183,11 @@ class _LibraryPageState extends State<LibraryPage> {
                         );
                       }
                       final exists = snap.data ?? false;
-                      return Column(
+                      return Row(
                         mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(
-                            height: 25,
+                            height: 32,
                             child: ElevatedButton(
                               onPressed: () async {
                                 if (exists) {
@@ -200,17 +204,9 @@ class _LibraryPageState extends State<LibraryPage> {
                               child: Text(exists ? 'Read' : 'Download'),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            height: 25,
-                            child: ElevatedButton(
-                              onPressed: () => _deleteBook(docId, localPath),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text('Delete'),
-                            ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, size: 20),
+                            onPressed: () => _deleteBook(docId, localPath),
                           ),
                         ],
                       );
