@@ -29,6 +29,7 @@ class BookDataService {
 
   List<BookCategory>? _cachedCategories;
   List<AffiliateBook>? _cachedAffiliateBooks;
+  String? _cachedBannerUrl;
   DateTime? _lastFetch;
 
   // Cache data for 5 minutes
@@ -119,9 +120,37 @@ class BookDataService {
     }
   }
 
+  Future<String?> getBannerUrl({bool forceRefresh = false}) async {
+    if (!forceRefresh && !_shouldRefreshCache && _cachedBannerUrl != null) {
+      return _cachedBannerUrl;
+    }
+
+    try {
+      final secondaryDb = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'rokomari-aff',
+      );
+      
+      final snapshot = await secondaryDb
+          .collection('banner')
+          .limit(1)
+          .get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        _cachedBannerUrl = snapshot.docs.first.data()['image'] as String?;
+        return _cachedBannerUrl;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching banner: $e');
+      return null;
+    }
+  }
+
   void clearCache() {
     _cachedCategories = null;
     _cachedAffiliateBooks = null;
+    _cachedBannerUrl = null;
     _lastFetch = null;
   }
 }
@@ -153,6 +182,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<BookCategory> _bookCategories = [];
   List<AffiliateBook> _affiliateBooks = [];
+  String? _bannerUrl;
   String _selectedCategory = '';
   bool _loading = true;
   Book? _bookOfTheDay;
@@ -169,10 +199,11 @@ class _HomePageState extends State<HomePage> {
     setState(() => _loading = true);
     
     try {
-      // Load both categories and affiliate books in parallel
+      // Load categories, affiliate books, and banner in parallel
       final results = await Future.wait([
         BookDataService.instance.getCategories(),
         BookDataService.instance.getAffiliateBooks(),
+        BookDataService.instance.getBannerUrl(),
       ]);
 
       if (!mounted) return;
@@ -180,6 +211,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _bookCategories = results[0] as List<BookCategory>;
         _affiliateBooks = results[1] as List<AffiliateBook>;
+        _bannerUrl = results[2] as String?;
         
         if (_bookCategories.isNotEmpty) {
           _selectedCategory = _bookCategories.first.categoryName;
@@ -214,6 +246,7 @@ class _HomePageState extends State<HomePage> {
       final results = await Future.wait([
         BookDataService.instance.getCategories(forceRefresh: true),
         BookDataService.instance.getAffiliateBooks(forceRefresh: true),
+        BookDataService.instance.getBannerUrl(forceRefresh: true),
       ]);
 
       if (!mounted) return;
@@ -221,6 +254,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _bookCategories = results[0] as List<BookCategory>;
         _affiliateBooks = results[1] as List<AffiliateBook>;
+        _bannerUrl = results[2] as String?;
       });
 
       _pickBookOfTheDay();
@@ -619,6 +653,27 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
+
+                                  // Banner
+                                  if (_bannerUrl != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                        vertical: 8.0,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12.0),
+                                        child: CachedNetworkImage(
+                                          imageUrl: _bannerUrl!,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => Container(
+                                            height: 150,
+                                            color: Colors.grey[300],
+                                          ),
+                                          errorWidget: (context, url, error) => const SizedBox.shrink(),
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
