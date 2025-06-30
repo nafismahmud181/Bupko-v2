@@ -127,7 +127,7 @@ class SectionTile extends StatelessWidget {
 class ChapterTile extends StatelessWidget {
   final int chapterIndex;
   final Chapter chapter;
-  final void Function(String chapterTitle) onAddSection;
+  final void Function(String chapterId) onAddSection;
   final void Function(Section section) onEditSection;
   final void Function(Section section) onDeleteSection;
 
@@ -168,7 +168,7 @@ class ChapterTile extends StatelessWidget {
           child: TextButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('Add Section'),
-            onPressed: () => onAddSection(chapter.title),
+            onPressed: () => onAddSection(chapter.id),
           ),
         ),
         const SizedBox(height: 8),
@@ -188,6 +188,59 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     chapters = List<Chapter>.from(mockChapters);
+  }
+
+  // Shows a dialog to get a title from the user
+  Future<String?> _showTitleDialog({required String title, String? hintText}) async {
+    final TextEditingController controller = TextEditingController();
+    String? result;
+    await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(title),
+              content: TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(hintText: hintText ?? 'Enter title'),
+                onChanged: (_) => setState(() {}),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(null),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: controller.text.trim().isEmpty
+                      ? null
+                      : () => Navigator.of(context).pop(controller.text.trim()),
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).then((value) => result = value);
+    return result;
+  }
+
+  // Add Chapter method
+  Future<void> _addChapter() async {
+    final newTitle = await _showTitleDialog(title: 'Add Chapter', hintText: 'Chapter title');
+    if (newTitle != null) {
+      setState(() {
+        chapters.add(
+          Chapter(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: newTitle,
+            sections: [],
+          ),
+        );
+      });
+    }
   }
 
   // Shows a SnackBar with the given message
@@ -223,6 +276,22 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
     }
   }
 
+  // Add Section method
+  Future<void> _addSection(String chapterId) async {
+    final newTitle = await _showTitleDialog(title: 'Add Section', hintText: 'Section title');
+    if (newTitle != null) {
+      setState(() {
+        final chapter = chapters.firstWhere((c) => c.id == chapterId, orElse: () => throw Exception('Chapter not found'));
+        chapter.sections.add(
+          Section(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: newTitle,
+          ),
+        );
+      });
+    }
+  }
+
   // Builds the Outline tab UI
   Widget _buildOutlineTab() {
     return ListView(
@@ -232,7 +301,7 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
         ElevatedButton.icon(
           icon: const Icon(Icons.add),
           label: const Text('Add Chapter'),
-          onPressed: () => _showSnackBar('Add Chapter pressed'),
+          onPressed: _addChapter,
         ),
         const SizedBox(height: 16),
         // List all chapters using ChapterTile
@@ -242,7 +311,7 @@ class _UploadResearchBookPageState extends State<UploadResearchBookPage> with Si
           return ChapterTile(
             chapterIndex: chapterIndex,
             chapter: chapter,
-            onAddSection: (chapterTitle) => _showSnackBar('Add Section to $chapterTitle'),
+            onAddSection: _addSection,
             onEditSection: _editSection,
             onDeleteSection: (section) => _showSnackBar('Delete ${section.title}'),
           );
