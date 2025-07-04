@@ -11,6 +11,7 @@ class CategoryPage extends StatefulWidget {
 
 class _CategoryPageState extends State<CategoryPage> {
   Future<QuerySnapshot>? _categoriesFuture;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -21,6 +22,7 @@ class _CategoryPageState extends State<CategoryPage> {
   Future<void> _loadCategories() async {
     setState(() {
       _categoriesFuture = FirebaseFirestore.instance.collection('categories').get();
+      _errorMessage = null;
     });
   }
 
@@ -29,10 +31,14 @@ class _CategoryPageState extends State<CategoryPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Explore by Genre'),
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement search functionality
+            },
+            tooltip: 'Search categories',
           ),
         ],
       ),
@@ -42,11 +48,71 @@ class _CategoryPageState extends State<CategoryPage> {
           future: _categoriesFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Loading categories...'),
+                  ],
+                ),
+              );
             }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red[300],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Error loading categories',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      snapshot.error.toString(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadCategories,
+                      child: const Text('Try Again'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(child: Text('No categories found.'));
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.category_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No categories found',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Pull to refresh or try again later'),
+                  ],
+                ),
+              );
             }
+
             final categories = snapshot.data!.docs;
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -56,17 +122,21 @@ class _CategoryPageState extends State<CategoryPage> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 2,
+                  childAspectRatio: 0.8, // Change this value to resize boxes
                 ),
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
                   final categoryData = category.data() as Map<String, dynamic>;
-                  final categoryName = category['categoryName'] ?? '';
-                  final imageUrl = (categoryData.containsKey('image') && (categoryData['image'] ?? '').toString().isNotEmpty)
+                  final categoryName = categoryData['categoryName'] ?? 'Unknown Category';
+                  final imageUrl = (categoryData.containsKey('image') && 
+                      (categoryData['image'] ?? '').toString().isNotEmpty)
                       ? categoryData['image']
-                      : 'https://www.keycdn.com/img/support/image-processing-lg.webp';
-                  return GestureDetector(
+                      : null;
+
+                  return _CategoryCard(
+                    categoryName: categoryName,
+                    imageUrl: imageUrl,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -78,85 +148,6 @@ class _CategoryPageState extends State<CategoryPage> {
                         ),
                       );
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: imageUrl.isNotEmpty
-                                  ? Image.network(
-                                      imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          Container(
-                                            color: Colors.grey[800],
-                                            child: const Icon(Icons.broken_image, size: 60, color: Colors.white),
-                                          ),
-                                    )
-                                  : Container(
-                                      color: Colors.grey[800],
-                                      child: const Icon(Icons.category, size: 60, color: Colors.white),
-                                    ),
-                            ),
-                            // Black overlay card in front of image but behind text
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                              ),
-                            ),
-                            // Overlay for category name
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(18),
-                                    bottomRight: Radius.circular(18),
-                                  ),
-                                ),
-                                child: Align(
-                                  alignment: Alignment.bottomLeft,
-                                  child: Text(
-                                    categoryName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 4,
-                                          color: Colors.black54,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                   );
                 },
               ),
@@ -166,4 +157,90 @@ class _CategoryPageState extends State<CategoryPage> {
       ),
     );
   }
-} 
+}
+
+class _CategoryCard extends StatelessWidget {
+  final String categoryName;
+  final String? imageUrl;
+  final VoidCallback onTap;
+
+  const _CategoryCard({
+    required this.categoryName,
+    this.imageUrl,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Category: $categoryName',
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Stack(
+              children: [
+                // Background image or placeholder
+                Positioned.fill(
+                  child: _buildBackground(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackground() {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Image.network(
+        imageUrl!,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: Colors.grey[300],
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+      );
+    }
+    return _buildPlaceholder();
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.grey[700]!,
+            Colors.grey[800]!,
+          ],
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.category,
+          size: 48,
+          color: Colors.white70,
+        ),
+      ),
+    );
+  }
+}
